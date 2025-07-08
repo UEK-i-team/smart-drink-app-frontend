@@ -3,7 +3,10 @@ import FlaskAndGlassSVG from './FlaskAndGlassSvg.jsx';
 
 const Background = () => {
   return (
-    <View style={styles.mainContainer}>
+    <View
+      style={[styles.mainContainer, StyleSheet.absoluteFill]}
+      pointerEvents="none"
+    >
       <FlaskAndGlassSVG />
     </View>
   );
