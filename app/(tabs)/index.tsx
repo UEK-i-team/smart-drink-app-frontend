@@ -13,15 +13,15 @@ export default function TabOneScreen() {
 
       <View style={styles.section}>
         <Text style={styles.title}>Chat Messages</Text>
-        <ChatBoxText message="Witaj! W czym mogę pomóc?" isUser={false} />
-        <ChatBoxText message="Chciałbym drink z wódką i miętą" isUser={true} />
+        <ChatBoxText message="Witaj! W czym mogę pomóc?"/>
+        <ChatBoxText message="Chciałbym drink z wódką i miętą"/>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.title}>Drink Card</Text>
         <DrinkView 
           name="Mojito"
-          image={require('../../assets/images/icon.png')}
+          image={require('../../assets/images/drink.png')}
           ingredients={['Wódka', 'Mięta', 'Limonka', 'Cukier', 'Woda gazowana']}
           description="Klasyczny drink na bazie wódki, świeżej mięty i limonki. Idealny na letnie wieczory."
           isSelected={true}
