@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { DrinkOptions } from "../components/drink-options/drink-options";
+import Background from "../components/main-background/Background";
 import {
-  DEFAULT_DRINK_SECTIONS,
-  DEFAULT_FLAVOR_PROFILES,
-  DEFAULT_POWER_LEVELS,
-  DEFAULT_SELECTED_FLAVOR,
-  DEFAULT_SELECTED_POWER,
+    DEFAULT_SELECTED_FLAVOR,
+    DEFAULT_SELECTED_POWER
 } from "../constants/drink-options-data";
 
 export default function DrinkOptionsScreen() {
@@ -29,7 +26,8 @@ export default function DrinkOptionsScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <DrinkOptions
+      <Background />
+      {/* <DrinkOptions
         sections={DEFAULT_DRINK_SECTIONS}
         powerLevels={DEFAULT_POWER_LEVELS}
         flavorProfiles={DEFAULT_FLAVOR_PROFILES}
@@ -37,7 +35,7 @@ export default function DrinkOptionsScreen() {
         selectedFlavorProfile={DEFAULT_SELECTED_FLAVOR}
         onSelectionChange={handleSelectionChange}
         onConfirm={handleConfirm}
-      />
+      /> */}
     </View>
   );
 }
