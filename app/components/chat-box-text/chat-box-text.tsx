@@ -23,6 +23,7 @@ const styles = StyleSheet.create({
   container: {
     marginVertical: 4,
     paddingHorizontal: 16,
+    alignItems: "flex-end",
   },
   bubble: {
     maxWidth: "80%",
