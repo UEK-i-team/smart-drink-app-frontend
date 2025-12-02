@@ -1,28 +1,13 @@
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { ChatBoxText } from "../components/chat-box-text/chat-box-text";
 import { DrinkInfoCard } from "../components/drink-info-card/drink-info-card";
-import { DrinkView } from "../components/drink-view/drink-view";
 import InputBoxWithSuggestions from "../components/input-box-with-suggestions";
 
 export default function DrinkChatScreen() {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Bot Message */}
-        <View style={styles.messageContainer}>
-          <ChatBoxText message="Przygotuj mi drink na bazie wódki, które są klasyczne" />
-        </View>
-
-        {/* Drink Card */}
-        <DrinkView 
-          name="Sazerac"
-          image={require('../../assets/images/drink.png')}
-          ingredients={['Whisky', 'Cukier', 'Bitters']}
-          description="Klasyczny koktajl z Nowego Orleanu, Sazerac to mocny, wytrawny, eliksir na bazie żytniej whisky, z anyżową nutą i aromatem cytrusów."
-          isSelected={false}
-          isFavorite={true}
-        />
+        
       </ScrollView>
 
       {/* Fixed Drink Info Card above Input */}
