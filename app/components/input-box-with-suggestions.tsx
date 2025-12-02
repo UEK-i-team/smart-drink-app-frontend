@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 
 interface InputBoxWithSuggestionsProps {
   onSend?: () => void;
@@ -19,7 +19,7 @@ export default function InputBoxWithSuggestions({
   return (
     <View style={styles.container}>
       {/* Scrollable suggestion chips */}
-      <ScrollView 
+      {/* <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
         style={styles.suggestionsContainer}
@@ -30,7 +30,7 @@ export default function InputBoxWithSuggestions({
             <Text style={styles.suggestionText}>{suggestion}</Text>
           </View>
         ))}
-      </ScrollView>
+      </ScrollView> */}
 
       {/* Input section */}
       <View style={styles.inputContainer}>

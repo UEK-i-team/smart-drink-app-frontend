@@ -1,13 +1,15 @@
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
+import { ChatBoxText } from "../components/chat-box-text/chat-box-text";
 import { DrinkInfoCard } from "../components/drink-info-card/drink-info-card";
+import { DrinkView } from "../components/drink-view/drink-view";
 import InputBoxWithSuggestions from "../components/input-box-with-suggestions";
 
 export default function DrinkChatScreen() {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        
+      
       </ScrollView>
 
       {/* Fixed Drink Info Card above Input */}
