@@ -1,13 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
+import { ScrollView, Text } from "react-native";
 import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 
 interface InputBoxWithSuggestionsProps {
+  value?: string;
+  onChange?: (message: string) => void;
   onSend?: () => void;
   placeholder?: string;
   suggestions?: string[];
 }
 
 export default function InputBoxWithSuggestions({
+  value,
+  onChange,
   onSend,
   placeholder = "Z jakim drinkiem ci pomóc",
   suggestions = [
@@ -27,7 +32,7 @@ export default function InputBoxWithSuggestions({
       >
         {suggestions.map((suggestion, index) => (
           <View key={index} style={styles.suggestionChip}>
-            <Text style={styles.suggestionText}>{suggestion}</Text>
+            <Text>{suggestion}</Text>
           </View>
         ))}
       </ScrollView> */}
@@ -42,6 +47,8 @@ export default function InputBoxWithSuggestions({
               placeholder={placeholder}
               placeholderTextColor="#999"
               multiline={false}
+              onChangeText={onChange}
+              value={value}
             />
             
             {/* Left side buttons */}
