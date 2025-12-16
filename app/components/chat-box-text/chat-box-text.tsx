@@ -1,15 +1,29 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 export interface ChatBoxTextProps {
   message: string;
+  onHistoryPress?: () => void;
 }
 
 export const ChatBoxText: React.FC<ChatBoxTextProps> = ({
   message,
+  onHistoryPress,
 }) => {
   return (
     <View style={styles.container}>
+      <TouchableOpacity 
+        style={styles.historyButton}
+        onPress={onHistoryPress}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Ionicons 
+          name="time-outline" 
+          size={20} 
+          color="white" 
+        />
+      </TouchableOpacity>
       <View style={styles.bubble}>
         <Text style={styles.text}>
           {message}
@@ -45,5 +59,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     color: "#000000",
+  },
+  historyButton: {
+    alignSelf: "flex-end",
+    bottom: -8,
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: "black",
+    zIndex: 1,
   },
 });

@@ -3,15 +3,12 @@ import { ScrollView, StyleSheet, View, Dimensions } from "react-native";
 import { ChatBoxText } from "../components/chat-box-text/chat-box-text";
 import { DrinkInfoCard } from "../components/drink-info-card/drink-info-card";
 import InputBoxWithSuggestions from "../components/input-box-with-suggestions";
-import { SAMPLE_DRINKS } from "../constants/sample-drinks";
-import DrinkCard from "../components/drink-card/drink-card";
+import { DrinksCarousel } from "../components/drinks-carousel/drinks-carousel";
+
 
 export default function DrinkChatScreen() {
   const [messages, setMessages] = useState<string[]>([]);
   const [message, setMessage] = useState<string>("");
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  const windowWidth = Dimensions.get("window").width;
 
   // Handle Message Change
   const handleMessageChange = (message: string) => {
@@ -20,73 +17,19 @@ export default function DrinkChatScreen() {
 
   // Send Message
   const handleSendMessage = () => {
-    setMessages([...messages, message]);
-    setMessage("");
-    return (
-      <View style={styles.messageContainer}>
-        <ChatBoxText message={message} />
-        {handleShowDrinks(message)}
-      </View>
-    )
-  }
-
-  // Show Drinks
-  const handleShowDrinks = (message: string) => {
-    if (!message) return null;
-    
-  // Pagination
-  const handleScroll = (event: any) => {
-    const contentOffset = event.nativeEvent.contentOffset;
-    const viewSize = event.nativeEvent.layoutMeasurement;
-    const pageNum = Math.floor(contentOffset.x / viewSize.width + 0.5);
-    
-    if (currentIndex !== pageNum) {
-      setCurrentIndex(pageNum);
+    if (message.trim()) {
+      setMessages([...messages, message]);
+      setMessage("");
     }
-  };
-    return (
-      <View style={styles.container}>
-        <ScrollView 
-          horizontal
-          pagingEnabled
-          scrollEventThrottle={16}
-          showsHorizontalScrollIndicator={false}
-          onScroll={handleScroll}
-          snapToInterval={windowWidth}
-        >
-          {SAMPLE_DRINKS.slice(0, 3).map((drink) => (
-            <View key={drink.id}>
-              <DrinkCard
-                drink={drink}
-                isFavorite={false}
-                onToggleFavorite={() => {}}
-              />
-            </View>
-          ))}
-        </ScrollView>
-        <View style={styles.pagination}>
-        {SAMPLE_DRINKS.slice(0, 3).map((_, index) => (
-          <View 
-            key={index}
-            style={[
-              styles.paginationDot,
-              index === currentIndex && styles.paginationDotActive
-            ]}
-          />
-        ))}
-      </View>
-      </View>
-    );
-  };
-
+  }
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        {messages.map((message, index) => (
-          <React.Fragment key={index}>
-            <ChatBoxText message={message} />
-            {handleShowDrinks(message)}
-          </React.Fragment>
+        {messages.map((msg, index) => (
+          <View key={index} style={styles.messageContainer}>
+            <ChatBoxText message={msg} />
+            <DrinksCarousel message={msg} messageIndex={index} />
+          </View>
         ))}
       </ScrollView>
 
@@ -96,7 +39,6 @@ export default function DrinkChatScreen() {
           tasteProfile="Słodki"
           drinkPower="Mocne"
         />
-        
         {/* Fixed Input Box at Bottom */}
         <View style={styles.inputWrapper}>
           <InputBoxWithSuggestions 
@@ -120,9 +62,12 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 8,
   },
+  drinkContainer: {
+    width: Dimensions.get('window').width,
+  },
   messageContainer: {
     paddingTop: 16,
-    paddingHorizontal: 8,
+    paddingHorizontal: 8
   },
   fixedBottomSection: {
     position: 'absolute',
@@ -143,22 +88,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 16,
     paddingBottom: 32,
-  },
-  pagination: {
-  flexDirection: 'row',
-  justifyContent: 'center',
-  alignItems: 'center',
-  marginTop: 10,
-  },
-  paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#ccc',
-    marginHorizontal: 4,
-  },
-  paginationDotActive: {
-    backgroundColor: '#000000ff', 
-    width: 12,
   },
 });
