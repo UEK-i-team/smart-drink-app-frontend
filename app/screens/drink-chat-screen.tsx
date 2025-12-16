@@ -1,21 +1,24 @@
 import React, { useState } from "react";
-import { ScrollView, StyleSheet, View, FlatList } from "react-native";
+import { ScrollView, StyleSheet, View, Dimensions } from "react-native";
 import { ChatBoxText } from "../components/chat-box-text/chat-box-text";
 import { DrinkInfoCard } from "../components/drink-info-card/drink-info-card";
-import { DrinkView } from "../components/drink-view/drink-view";
 import InputBoxWithSuggestions from "../components/input-box-with-suggestions";
 import { SAMPLE_DRINKS } from "../constants/sample-drinks";
+import DrinkCard from "../components/drink-card/drink-card";
 
 export default function DrinkChatScreen() {
   const [messages, setMessages] = useState<string[]>([]);
   const [message, setMessage] = useState<string>("");
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  const windowWidth = Dimensions.get("window").width;
 
+  // Handle Message Change
   const handleMessageChange = (message: string) => {
     setMessage(message);
   }
 
+  // Send Message
   const handleSendMessage = () => {
     setMessages([...messages, message]);
     setMessage("");
@@ -27,51 +30,48 @@ export default function DrinkChatScreen() {
     )
   }
 
+  // Show Drinks
   const handleShowDrinks = (message: string) => {
     if (!message) return null;
     
-    const filteredDrinks = SAMPLE_DRINKS.filter(drink => 
-      drink.name.toLowerCase().includes(message.toLowerCase())
-    );
-    if (filteredDrinks.length === 0) return null;
-    const startIndex = 0;
-    const endIndex = 3;
-    const drinksToShow = 3;
-    const handleScroll = (event: any) => {
-      const contentOffset = event.nativeEvent.contentOffset;
-      const viewSize = event.nativeEvent.layoutMeasurement;
-      const pageNum = Math.floor(contentOffset.x / viewSize.width);
+  // Pagination
+  const handleScroll = (event: any) => {
+    const contentOffset = event.nativeEvent.contentOffset;
+    const viewSize = event.nativeEvent.layoutMeasurement;
+    const pageNum = Math.floor(contentOffset.x / viewSize.width + 0.5);
+    
+    if (currentIndex !== pageNum) {
       setCurrentIndex(pageNum);
-    };
+    }
+  };
     return (
-      <View style={styles.singleDrinkWrapper}>
+      <View style={styles.container}>
         <ScrollView 
           horizontal
           pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          style={styles.scrollView}
           scrollEventThrottle={16}
+          showsHorizontalScrollIndicator={false}
           onScroll={handleScroll}
+          snapToInterval={windowWidth}
         >
-          {filteredDrinks.slice(startIndex, endIndex).map((drink) => (
+          {SAMPLE_DRINKS.slice(0, 3).map((drink) => (
             <View key={drink.id}>
-              <DrinkView 
-                name={drink.name}
-                image={{uri: drink.imageUrl}}
-                ingredients={[]}
-                description={drink.description}
+              <DrinkCard
+                drink={drink}
+                isFavorite={false}
+                onToggleFavorite={() => {}}
               />
             </View>
           ))}
         </ScrollView>
         <View style={styles.pagination}>
-        {filteredDrinks.slice(0, drinksToShow).map((_, index) => (
+        {SAMPLE_DRINKS.slice(0, 3).map((_, index) => (
           <View 
             key={index}
             style={[
               styles.paginationDot,
               index === currentIndex && styles.paginationDotActive
-            ]} 
+            ]}
           />
         ))}
       </View>
@@ -81,7 +81,7 @@ export default function DrinkChatScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView style={styles.scrollView}>
         {messages.map((message, index) => (
           <React.Fragment key={index}>
             <ChatBoxText message={message} />
@@ -118,19 +118,10 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 280,
+    paddingHorizontal: 8,
   },
   messageContainer: {
     paddingTop: 16,
-    paddingHorizontal: 8,
-  },
-  singleDrinkContainer: {
-    height: 220,
-    marginVertical: 10,
-  },
-  drinkScrollContent: {
     paddingHorizontal: 8,
   },
   fixedBottomSection: {
@@ -167,7 +158,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   paginationDotActive: {
-    backgroundColor: '#D94A3D', 
+    backgroundColor: '#000000ff', 
     width: 12,
   },
 });
