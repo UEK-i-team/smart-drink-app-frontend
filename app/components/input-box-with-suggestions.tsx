@@ -1,11 +1,18 @@
+import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { ScrollView, Text } from "react-native";
 import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { DrinkOptions } from "./drink-options/drink-options";
 
 interface InputBoxWithSuggestionsProps {
   value?: string;
   onChange?: (message: string) => void;
   onSend?: () => void;
+  onSelectionChange?: (selectedItems: {
+    drinkOptions: string[];
+    power: string;
+    flavorProfile: string;
+  }) => void;
   placeholder?: string;
   suggestions?: string[];
 }
@@ -14,6 +21,7 @@ export default function InputBoxWithSuggestions({
   value,
   onChange,
   onSend,
+  onSelectionChange,
   placeholder = "Z jakim drinkiem ci pomóc",
   suggestions = [
     "Skomponuj drinks ze składników: Wódka, Cytryna, Mięta",
@@ -21,22 +29,38 @@ export default function InputBoxWithSuggestions({
     "Polecam drink orzeźwiający na gorący dzień",
   ],
 }: InputBoxWithSuggestionsProps) {
+  const [showDrinkOptions, setShowDrinkOptions] = useState(false);
+  
+  // Show drink options
+  const handleShowDrinkOptions = () => {
+    setShowDrinkOptions(!showDrinkOptions)
+  }
+
+  const handleClickSuggestion = (suggestion: string) => {
+    if (onChange) {
+      onChange(suggestion);
+    }
+  }
+
   return (
     <View style={styles.container}>
       {/* Scrollable suggestion chips */}
-      {/* <ScrollView 
+      {!value && (
+      <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
         style={styles.suggestionsContainer}
         contentContainerStyle={styles.suggestionsContent}
       >
         {suggestions.map((suggestion, index) => (
-          <View key={index} style={styles.suggestionChip}>
-            <Text>{suggestion}</Text>
-          </View>
+          <TouchableOpacity onPress={() => handleClickSuggestion(suggestion)}>
+            <View key={index} style={styles.suggestionChip}>
+              <Text>{suggestion}</Text>
+            </View>
+          </TouchableOpacity>
         ))}
-      </ScrollView> */}
-
+      </ScrollView>
+      )}
       {/* Input section */}
       <View style={styles.inputContainer}>
         <View style={styles.inputContent}>
@@ -57,7 +81,7 @@ export default function InputBoxWithSuggestions({
                 <Ionicons name="camera-outline" size={22} color="#333" />
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.inputIconButton}>
+              <TouchableOpacity onPress={handleShowDrinkOptions} style={styles.inputIconButton}>
                 <Ionicons name="options-outline" size={22} color="#333" />
               </TouchableOpacity>
             </View>
@@ -72,6 +96,7 @@ export default function InputBoxWithSuggestions({
           </TouchableOpacity>
         </View>
       </View>
+      {showDrinkOptions && <DrinkOptions onSelectionChange={onSelectionChange} onClose={handleShowDrinkOptions} />}
     </View>
   );
 }

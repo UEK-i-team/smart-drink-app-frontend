@@ -20,7 +20,7 @@ type PowerLevelConfig = {
   aliases?: string[];
 };
 
-const TASTE_PROFILE_CONFIG: Record<string, TasteProfileConfig> = {
+export const TASTE_PROFILE_CONFIG: Record<string, TasteProfileConfig> = {
   sweet: {
     labelPl: "Słodki",
     iconName: "fruit-cherries",
@@ -58,7 +58,7 @@ const TASTE_PROFILE_CONFIG: Record<string, TasteProfileConfig> = {
   },
 };
 
-const POWER_LEVEL_CONFIG: Record<string, PowerLevelConfig> = {
+export const POWER_LEVEL_CONFIG: Record<string, PowerLevelConfig> = {
   weak: { labelPl: "Słabe", bolts: 1, aliases: ["slabe"] },
   medium: { labelPl: "Średni", bolts: 2, aliases: ["sredni", "średni"] },
   strong: { labelPl: "Mocne", bolts: 3, aliases: ["mocne"] },

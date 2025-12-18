@@ -22,6 +22,7 @@ export default function DrinkChatScreen() {
       setMessage("");
     }
   }
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView}>
@@ -61,6 +62,7 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     paddingHorizontal: 8,
+    paddingBottom: 350,
   },
   drinkContainer: {
     width: Dimensions.get('window').width,

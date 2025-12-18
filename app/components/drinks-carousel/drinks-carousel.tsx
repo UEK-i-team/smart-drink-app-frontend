@@ -9,8 +9,9 @@ import { RecommendDrinkView } from "../recommend-drink-view/recommend-drink-view
 import { DrinkInfoChatBox } from "../drink-info-chat-box/drink-info-chat-box";
 import { Dimensions } from "react-native";
 import { SAMPLE_DRINKS } from "../../constants/sample-drinks";
+import { Drink } from "../../types/drink";
 
-export const DrinksCarousel = ({ message, messageIndex }: { message: string; messageIndex: number }) => {
+export const DrinksCarousel = ({ message, messageIndex }: { message: string; messageIndex: number  }) => {
     const windowWidth = Dimensions.get("window").width;
     
     if (!message) return null;
@@ -33,6 +34,10 @@ export const DrinksCarousel = ({ message, messageIndex }: { message: string; mes
     };
     
     const currentMessagePage = messagePagination[messageIndex] || 0;
+    
+    // Apply filter if provided
+    const filteredDrinks = SAMPLE_DRINKS;
+    
     // Horizontal Scroll View
     return (
       <View style={styles.container}>
@@ -45,13 +50,13 @@ export const DrinksCarousel = ({ message, messageIndex }: { message: string; mes
           snapToInterval={windowWidth}
           snapToAlignment="center"
         >
-          {SAMPLE_DRINKS.slice(0, 2).map((drink) => (
+          {filteredDrinks.slice(0, 2).map((drink: Drink) => (
             <View key={drink.id} style={styles.drinkContainer}>
              <DrinkView 
                 name={drink.name}
                 image={{uri: drink.imageUrl}}
                 ingredients={[]}
-                description={drink.description}
+                description={drink.description || ""}
               />
             </View>
           ))}
