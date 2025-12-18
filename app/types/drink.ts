@@ -5,4 +5,7 @@ export interface Drink {
   strength: string;
   description?: string;
   imageUrl: string;
+  ingredients?: string[];
+  instructions?: string[];
+  imageDescription?: string;
 }
