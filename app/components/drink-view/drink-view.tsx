@@ -77,7 +77,7 @@ export const DrinkView: React.FC<DrinkViewProps> = ({
       </TouchableOpacity>
       
       {/* Favorite Button - positioned above the container */}
-      <TouchableOpacity
+      {/* <TouchableOpacity
         onPress={onFavoritePress}
         style={styles.favoriteButton}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -87,7 +87,7 @@ export const DrinkView: React.FC<DrinkViewProps> = ({
           size={24}
           color="white"
         />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 };
@@ -166,15 +166,15 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     color: "white",
   },
-  favoriteButton: {
-    padding: 8,
-    position: "absolute",
-    top: -8,
-    right: -8,
-    backgroundColor: "black",
-    borderRadius: 20,
-    zIndex: 1,
-  },
+  // favoriteButton: {
+  //   padding: 8,
+  //   position: "absolute",
+  //   top: -8,
+  //   right: -8,
+  //   backgroundColor: "black",
+  //   borderRadius: 20,
+  //   zIndex: 1,
+  // },
   ingredientsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",

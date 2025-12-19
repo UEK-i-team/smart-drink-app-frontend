@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { ScrollView, StyleSheet, View, Dimensions } from "react-native";
 import { ChatBoxText } from "../components/chat-box-text/chat-box-text";
 import { DrinkInfoCard } from "../components/drink-info-card/drink-info-card";
@@ -9,10 +9,25 @@ import { DrinksCarousel } from "../components/drinks-carousel/drinks-carousel";
 export default function DrinkChatScreen() {
   const [messages, setMessages] = useState<string[]>([]);
   const [message, setMessage] = useState<string>("");
+  const [filters, setFilters] = useState({ flavorProfile: "Słodki", power: "Mocne" });
+  const scrollViewRef = useRef<ScrollView>(null);
+  
+  // Handle on History Press
+  const handleHistoryPress = (msg: string) => {
+    setMessage(msg);
+  }
 
   // Handle Message Change
   const handleMessageChange = (message: string) => {
     setMessage(message);
+  }
+
+  // Handle Filter Change
+  const handleFilterChange = (filterData: { drinkOptions: string[], power: string, flavorProfile: string }) => {
+    setFilters({
+      flavorProfile: filterData.flavorProfile,
+      power: filterData.power
+    });
   }
 
   // Send Message
@@ -23,13 +38,29 @@ export default function DrinkChatScreen() {
     }
   }
 
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    if (scrollViewRef.current && messages.length > 0) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages]);
+
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView}>
+      <ScrollView 
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
         {messages.map((msg, index) => (
           <View key={index} style={styles.messageContainer}>
-            <ChatBoxText message={msg} />
-            <DrinksCarousel message={msg} messageIndex={index} />
+            <ChatBoxText 
+              message={msg} 
+              onHistoryPress={() => handleHistoryPress(msg)}
+            />
+            <DrinksCarousel message={msg} messageIndex={index} filters={filters} />
           </View>
         ))}
       </ScrollView>
@@ -37,8 +68,8 @@ export default function DrinkChatScreen() {
       {/* Fixed Drink Info Card above Input */}
       <View style={styles.fixedBottomSection}>
         <DrinkInfoCard 
-          tasteProfile="Słodki"
-          drinkPower="Mocne"
+          tasteProfile={filters.flavorProfile}
+          drinkPower={filters.power}
         />
         {/* Fixed Input Box at Bottom */}
         <View style={styles.inputWrapper}>
@@ -46,6 +77,7 @@ export default function DrinkChatScreen() {
             value={message}
             onChange={handleMessageChange}
             onSend={handleSendMessage}
+            onSelectionChange={handleFilterChange}
             placeholder="Z jakim drinkiem ci pomóc"
           />
         </View>
@@ -62,6 +94,10 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     paddingHorizontal: 8,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'flex-end',
     paddingBottom: 350,
   },
   drinkContainer: {

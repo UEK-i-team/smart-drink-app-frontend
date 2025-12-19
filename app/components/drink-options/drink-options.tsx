@@ -25,12 +25,16 @@ export interface DrinkOptionSection {
 }
 
 export interface DrinkOptionsProps {
+  data?: {
+    power: string;
+    flavorProfile: string;
+  };
   sections?: DrinkOptionSection[];
   powerLevels?: string[];
   flavorProfiles?: string[];
   selectedPower?: string;
   selectedFlavorProfile?: string;
-  onConfirm?: () => void;
+  onConfirm?: (data: { power: string; flavorProfile: string }) => void;
   onClose?: () => void;
   onSelectionChange?: (selectedItems: {
     drinkOptions: string[];
@@ -64,7 +68,7 @@ export const DrinkOptions: React.FC<DrinkOptionsProps> = ({
     },
   ],
   powerLevels = ["Słabe", "Średnie", "Mocne"],
-  flavorProfiles = ["Słodki", "Wytrawy", "Pikantny", "Półsłodki"],
+  flavorProfiles = ["Słodki", "Wytrawny", "Pikantny", "Półsłodki"],
   selectedPower = "Średnie",
   selectedFlavorProfile = "Słodki",
   onConfirm,
@@ -175,7 +179,11 @@ export const DrinkOptions: React.FC<DrinkOptionsProps> = ({
       });
     }
     if (onConfirm) {
-      onConfirm();
+      const filterData = {
+        power: selectedPowerState,
+        flavorProfile: selectedFlavorState,
+      }
+      onConfirm(filterData);
     }
     if (onClose) {
       onClose();

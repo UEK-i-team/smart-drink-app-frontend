@@ -30,10 +30,16 @@ export default function InputBoxWithSuggestions({
   ],
 }: InputBoxWithSuggestionsProps) {
   const [showDrinkOptions, setShowDrinkOptions] = useState(false);
+  const [filters, setFilters] = useState({ flavorProfile: "", power: "" });
   
   // Show drink options
-  const handleShowDrinkOptions = () => {
-    setShowDrinkOptions(!showDrinkOptions)
+  const handleShowDrinkOptions = (newData: { flavorProfile: string; power: string }) => {
+    setFilters(newData)
+    setShowDrinkOptions(true)
+  }
+
+  const handleCloseDrinkOptions = () => {
+    setShowDrinkOptions(false)
   }
 
   const handleClickSuggestion = (suggestion: string) => {
@@ -81,7 +87,7 @@ export default function InputBoxWithSuggestions({
                 <Ionicons name="camera-outline" size={22} color="#333" />
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={handleShowDrinkOptions} style={styles.inputIconButton}>
+              <TouchableOpacity onPress={() => handleShowDrinkOptions(filters)} style={styles.inputIconButton}>
                 <Ionicons name="options-outline" size={22} color="#333" />
               </TouchableOpacity>
             </View>
@@ -96,7 +102,12 @@ export default function InputBoxWithSuggestions({
           </TouchableOpacity>
         </View>
       </View>
-      {showDrinkOptions && <DrinkOptions onSelectionChange={onSelectionChange} onClose={handleShowDrinkOptions} />}
+      {showDrinkOptions && <DrinkOptions 
+        data={filters}
+        onSelectionChange={onSelectionChange} 
+        onClose={() => handleCloseDrinkOptions()} 
+        onConfirm={(filters: {flavorProfile: string; power: string}) => handleShowDrinkOptions(filters)}
+      />}
     </View>
   );
 }

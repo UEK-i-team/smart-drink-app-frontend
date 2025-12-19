@@ -11,7 +11,7 @@ import { Dimensions } from "react-native";
 import { SAMPLE_DRINKS } from "../../constants/sample-drinks";
 import { Drink } from "../../types/drink";
 
-export const DrinksCarousel = ({ message, messageIndex }: { message: string; messageIndex: number  }) => {
+export const DrinksCarousel = ({ message, messageIndex, filters }: { message: string; messageIndex: number; filters: { flavorProfile: string; power: string } }) => {
     const windowWidth = Dimensions.get("window").width;
     
     if (!message) return null;
@@ -36,7 +36,9 @@ export const DrinksCarousel = ({ message, messageIndex }: { message: string; mes
     const currentMessagePage = messagePagination[messageIndex] || 0;
     
     // Apply filter if provided
-    const filteredDrinks = SAMPLE_DRINKS;
+    const filteredDrinks = SAMPLE_DRINKS.filter((drink: Drink) => {
+      return drink.flavorProfile === filters.flavorProfile && drink.strength === filters.power;
+    });
     
     // Horizontal Scroll View
     return (
@@ -49,41 +51,58 @@ export const DrinksCarousel = ({ message, messageIndex }: { message: string; mes
           onScroll={handleScroll}
           snapToInterval={windowWidth}
           snapToAlignment="center"
+          contentContainerStyle={{ flexDirection: 'row' }}
         >
-          {filteredDrinks.slice(0, 2).map((drink: Drink) => (
-            <View key={drink.id} style={styles.drinkContainer}>
-             <DrinkView 
-                name={drink.name}
-                image={{uri: drink.imageUrl}}
-                ingredients={[]}
-                description={drink.description || ""}
-              />
+          {filteredDrinks.length > 0 ? (
+          [
+            ...filteredDrinks.slice(0, 2).map((drink: Drink) => (
+              <View key={drink.id} style={styles.drinkContainer}>
+                <DrinkView 
+                    name={drink.name}
+                    image={{uri: drink.imageUrl}}
+                    ingredients={[]}
+                    description={drink.description || ""}
+                  />
+              </View>
+            )),
+            <View key="recommend" style={styles.drinkContainer}>
+                <RecommendDrinkView />
             </View>
-          ))}
-          <View key="recommend" style={styles.drinkContainer}>
-            <RecommendDrinkView />
-          </View>
+          ]
+          ) : (
+            <View key="recommend" style={styles.drinkContainer}>
+                <RecommendDrinkView />
+            </View>
+          )}
         </ScrollView>
         <View style={styles.pagination}>
         {/* Pagination Dots */}
-        {[0, 1, 2].map((index) => (
+        {filteredDrinks.length === 0 ? (
           <View 
-            key={index}
             style={[
               styles.paginationDot,
-              index === currentMessagePage && styles.paginationDotActive
+              styles.paginationDotActive
             ]}
           />
-        ))}
+        ) : (
+          [0, 1, 2].map((index) => (
+            <View 
+              key={index}
+              style={[
+                styles.paginationDot,
+                index === currentMessagePage && styles.paginationDotActive
+              ]}
+          />
+        ))
+        )}
       </View>
-      <DrinkInfoChatBox />
+      {/* <DrinkInfoChatBox /> */}
       </View>
     );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#f5f5f5',
     marginTop: 16,
   },
