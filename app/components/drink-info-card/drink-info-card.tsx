@@ -21,25 +21,20 @@ type PowerLevelConfig = {
 };
 
 export const TASTE_PROFILE_CONFIG: Record<string, TasteProfileConfig> = {
-  sweet: {
+  "sweet": {
     labelPl: "Słodki",
     iconName: "fruit-cherries",
-    aliases: ["slodki"],
+    aliases: ["slodki", "słodki", "sweet"],
   },
-  dry: {
+  "dry": {
     labelPl: "Wytrawny",
     iconName: "fruit-grapes",
-    aliases: ["wytrawny"],
+    aliases: ["wytrawny", "dry"],
   },
-  spicy: {
-    labelPl: "Pikantny",
-    iconName: "chili-mild",
-    aliases: ["pikantny"],
-  },
-  "semi-sweet": {
-    labelPl: "Pół słodki",
+  "semi_sweet": {
+    labelPl: "Półsłodki",
     iconName: "fruit-pineapple",
-    aliases: ["pol-slodki", "pół-słodki"],
+    aliases: ["pol-slodki", "pół-słodki", "półsłodki", "semi_sweet", "semi-sweet"],
   },
   "semi-dry": {
     labelPl: "Pół wytrawny",
@@ -59,9 +54,9 @@ export const TASTE_PROFILE_CONFIG: Record<string, TasteProfileConfig> = {
 };
 
 export const POWER_LEVEL_CONFIG: Record<string, PowerLevelConfig> = {
-  weak: { labelPl: "Słabe", bolts: 1, aliases: ["slabe"] },
-  medium: { labelPl: "Średni", bolts: 2, aliases: ["sredni", "średni"] },
-  strong: { labelPl: "Mocne", bolts: 3, aliases: ["mocne"] },
+  "low": { labelPl: "Słabe", bolts: 1, aliases: ["slabe", "weak", "low"] },
+  "medium": { labelPl: "Średni", bolts: 2, aliases: ["sredni", "średni", "medium"] },
+  "high": { labelPl: "Mocne", bolts: 3, aliases: ["mocne", "strong", "high"] },
 };
 
 const normalizeKey = (value: string) =>
@@ -81,6 +76,17 @@ const resolveVariant = <T extends { aliases?: string[] }>(
     config[normalized] ||
     Object.values(config).find((entry) => entry.aliases?.includes(normalized))
   );
+};
+
+// Convert English keys to Polish labels for backend filtering
+export const englishToPolishPower = (englishKey: string): string => {
+  const config = POWER_LEVEL_CONFIG[englishKey];
+  return config?.labelPl || englishKey;
+};
+
+export const englishToPolishTaste = (englishKey: string): string => {
+  const config = TASTE_PROFILE_CONFIG[englishKey];
+  return config?.labelPl || englishKey;
 };
 
 export interface DrinkInfoCardProps {

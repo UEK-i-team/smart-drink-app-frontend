@@ -1,8 +1,9 @@
 export interface Drink {
-  id: string;
   name: string;
-  flavorProfile: string;
+  description: string;
+  flavor_profile: string;
   strength: string;
-  description?: string;
-  imageUrl: string;
+  ingredients: string[];
+  instructions: string[];
+  image_description: string;
 }

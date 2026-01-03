@@ -31,7 +31,9 @@ export interface DrinkOptionsProps {
   };
   sections?: DrinkOptionSection[];
   powerLevels?: string[];
+  powerLevelsLabels?: string[];
   flavorProfiles?: string[];
+  flavorProfilesLabels?: string[];
   selectedPower?: string;
   selectedFlavorProfile?: string;
   onConfirm?: (data: { power: string; flavorProfile: string }) => void;
@@ -67,10 +69,12 @@ export const DrinkOptions: React.FC<DrinkOptionsProps> = ({
       isExpanded: false,
     },
   ],
-  powerLevels = ["Słabe", "Średnie", "Mocne"],
-  flavorProfiles = ["Słodki", "Wytrawny", "Pikantny", "Półsłodki"],
-  selectedPower = "Średnie",
-  selectedFlavorProfile = "Słodki",
+  powerLevels = ["Low", "Medium", "High"],
+  powerLevelsLabels = ["Słabe", "Średnie", "Mocne"],
+  flavorProfiles = ["Sweet", "Dry", "Semi_sweet"],
+  flavorProfilesLabels = ["Słodki", "Wytrawny", "Półsłodki"],
+  selectedPower = "Medium",
+  selectedFlavorProfile = "Sweet",
   onConfirm,
   onClose,
   onSelectionChange,
@@ -391,7 +395,7 @@ export const DrinkOptions: React.FC<DrinkOptionsProps> = ({
                         styles.powerButtonTextSelected,
                     ]}
                   >
-                    {level}
+                    {powerLevelsLabels?.[index] || level}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -436,7 +440,7 @@ export const DrinkOptions: React.FC<DrinkOptionsProps> = ({
                         selectedFlavorState === profile && styles.selectedItemText,
                       ]}
                     >
-                      {profile}
+                      {flavorProfilesLabels?.[index] || profile}
                     </Text>
                     <View
                       style={[

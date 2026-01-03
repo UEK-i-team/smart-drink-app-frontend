@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
     ScrollView, 
     StyleSheet, 
@@ -8,11 +8,38 @@ import { DrinkView } from "../drink-view/drink-view";
 import { RecommendDrinkView } from "../recommend-drink-view/recommend-drink-view";
 import { DrinkInfoChatBox } from "../drink-info-chat-box/drink-info-chat-box";
 import { Dimensions } from "react-native";
-import { SAMPLE_DRINKS } from "../../constants/sample-drinks";
 import { Drink } from "../../types/drink";
+import { getDrinks } from "@/api.js";
 
 export const DrinksCarousel = ({ message, messageIndex, filters }: { message: string; messageIndex: number; filters: { flavorProfile: string; power: string } }) => {
     const windowWidth = Dimensions.get("window").width;
+    const [drinks, setDrinks] = useState<Drink[]>([]);
+    const scrollViewRef = useRef<ScrollView>(null);
+
+    // Get Drinks
+    const fetchDrinks = async () => {
+      try {
+        const response = await getDrinks(filters);
+        const drinksData = response.drinks || response;
+        setDrinks(drinksData);
+        // Reset pagination to first page when new drinks are fetched
+        setMessagePagination(prev => ({
+          ...prev,
+          [messageIndex]: 0
+        }));
+        // Scroll to first page
+        setTimeout(() => {
+          scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: false });
+        }, 100);
+      } catch (error) {
+        console.error('Error fetching drinks:', error);
+        setDrinks([]);
+      }
+    }
+    
+    useEffect(() => {
+      fetchDrinks();
+    }, [filters]);
     
     if (!message) return null;
     
@@ -36,14 +63,17 @@ export const DrinksCarousel = ({ message, messageIndex, filters }: { message: st
     const currentMessagePage = messagePagination[messageIndex] || 0;
     
     // Apply filter if provided
-    const filteredDrinks = SAMPLE_DRINKS.filter((drink: Drink) => {
-      return drink.flavorProfile === filters.flavorProfile && drink.strength === filters.power;
+    const filteredDrinks = drinks.filter((drink: Drink) => {
+      const flavorMatch = !filters.flavorProfile || drink.flavor_profile === filters.flavorProfile;
+      const strengthMatch = !filters.power || drink.strength === filters.power;
+      return flavorMatch && strengthMatch;
     });
     
     // Horizontal Scroll View
     return (
       <View style={styles.container}>
         <ScrollView 
+          ref={scrollViewRef}
           horizontal
           pagingEnabled
           scrollEventThrottle={16}
@@ -55,12 +85,12 @@ export const DrinksCarousel = ({ message, messageIndex, filters }: { message: st
         >
           {filteredDrinks.length > 0 ? (
           [
-            ...filteredDrinks.slice(0, 2).map((drink: Drink) => (
-              <View key={drink.id} style={styles.drinkContainer}>
+            ...filteredDrinks.slice(0, 2).map((drink: Drink, index: number) => (
+              <View key={drink.name || index} style={styles.drinkContainer}>
                 <DrinkView 
                     name={drink.name}
-                    image={{uri: drink.imageUrl}}
-                    ingredients={[]}
+                    image={{uri: drink.image_description}}
+                    ingredients={drink.ingredients || []}
                     description={drink.description || ""}
                   />
               </View>
@@ -85,7 +115,7 @@ export const DrinksCarousel = ({ message, messageIndex, filters }: { message: st
             ]}
           />
         ) : (
-          [0, 1, 2].map((index) => (
+          Array.from({ length: Math.min(filteredDrinks.length, 2) + 1 }, (_, index) => (
             <View 
               key={index}
               style={[

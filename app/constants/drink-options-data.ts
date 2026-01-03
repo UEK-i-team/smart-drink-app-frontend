@@ -36,15 +36,22 @@ export const DEFAULT_DRINK_SECTIONS: DrinkOptionSection[] = [
   },
 ];
 
-export const DEFAULT_POWER_LEVELS = ["Słabe", "Średnie", "Mocne"];
+export const DEFAULT_POWER_LEVELS = ["Low", "Medium", "High"];
+
+export const DEFAULT_POWER_LEVELS_LABELS = ["Słabe", "Średnie", "Mocne"];
 
 export const DEFAULT_FLAVOR_PROFILES = [
+  "Sweet",
+  "Dry",
+  "Semi_sweet",
+];
+
+export const DEFAULT_FLAVOR_PROFILES_LABELS = [
   "Słodki",
-  "Wytrawy",
-  "Pikantny",
+  "Wytrawny",
   "Półsłodki",
 ];
 
-export const DEFAULT_SELECTED_POWER = "Średnie";
+export const DEFAULT_SELECTED_POWER = "Medium";
 
-export const DEFAULT_SELECTED_FLAVOR = "Słodki";
+export const DEFAULT_SELECTED_FLAVOR = "Sweet";

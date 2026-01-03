@@ -1,15 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ScrollView, StyleSheet, View, Dimensions } from "react-native";
 import { ChatBoxText } from "../components/chat-box-text/chat-box-text";
-import { DrinkInfoCard } from "../components/drink-info-card/drink-info-card";
+import { DrinkInfoCard, englishToPolishPower, englishToPolishTaste } from "../components/drink-info-card/drink-info-card";
 import InputBoxWithSuggestions from "../components/input-box-with-suggestions";
 import { DrinksCarousel } from "../components/drinks-carousel/drinks-carousel";
 
-
 export default function DrinkChatScreen() {
   const [messages, setMessages] = useState<string[]>([]);
+  const [messageFilters, setMessageFilters] = useState<{flavorProfile: string, power: string}[]>([]);
   const [message, setMessage] = useState<string>("");
-  const [filters, setFilters] = useState({ flavorProfile: "Słodki", power: "Mocne" });
+  const [filters, setFilters] = useState({ flavorProfile: "sweet", power: "weak" });
   const scrollViewRef = useRef<ScrollView>(null);
   
   // Handle on History Press
@@ -24,6 +24,7 @@ export default function DrinkChatScreen() {
 
   // Handle Filter Change
   const handleFilterChange = (filterData: { drinkOptions: string[], power: string, flavorProfile: string }) => {
+    console.log('Received filter data:', filterData);
     setFilters({
       flavorProfile: filterData.flavorProfile,
       power: filterData.power
@@ -34,6 +35,7 @@ export default function DrinkChatScreen() {
   const handleSendMessage = () => {
     if (message.trim()) {
       setMessages([...messages, message]);
+      setMessageFilters([...messageFilters, filters]);
       setMessage("");
     }
   }
@@ -60,7 +62,14 @@ export default function DrinkChatScreen() {
               message={msg} 
               onHistoryPress={() => handleHistoryPress(msg)}
             />
-            <DrinksCarousel message={msg} messageIndex={index} filters={filters} />
+            <DrinksCarousel 
+              message={msg} 
+              messageIndex={index} 
+              filters={{
+                flavorProfile: englishToPolishTaste(messageFilters[index]?.flavorProfile || filters.flavorProfile),
+                power: englishToPolishPower(messageFilters[index]?.power || filters.power)
+              }} 
+            />
           </View>
         ))}
       </ScrollView>
