@@ -24,7 +24,6 @@ export default function DrinkChatScreen() {
 
   // Handle Filter Change
   const handleFilterChange = (filterData: { drinkOptions: string[], power: string, flavorProfile: string }) => {
-    console.log('Received filter data:', filterData);
     setFilters({
       flavorProfile: filterData.flavorProfile,
       power: filterData.power

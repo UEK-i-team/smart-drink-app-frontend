@@ -12,7 +12,6 @@ export const getDrinks = async (filters = {}) => {
     }
 
     const data = await response.json();
-    console.log(data);
     
     return data.drinks || data;
   } catch (error) {
@@ -33,6 +32,42 @@ export const getDrinkById = async (id) => {
     return await response.json();
   } catch (error) {
     console.error('Error fetching drink:', error);
+    throw error;
+  }
+};
+
+// Get history
+export const getHistory = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/getHistory`)
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching history:', error);
+    throw error;
+  }
+};
+
+// Add to history
+export const addToHistory = async (drink) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/addHistory`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ drink })
+    })
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating history:', error);
     throw error;
   }
 };

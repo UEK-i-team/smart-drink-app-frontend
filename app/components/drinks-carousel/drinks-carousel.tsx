@@ -9,11 +9,12 @@ import { RecommendDrinkView } from "../recommend-drink-view/recommend-drink-view
 import { DrinkInfoChatBox } from "../drink-info-chat-box/drink-info-chat-box";
 import { Dimensions } from "react-native";
 import { Drink } from "../../types/drink";
-import { getDrinks } from "@/api.js";
+import { getDrinks, addToHistory } from "@/api.js";
 
 export const DrinksCarousel = ({ message, messageIndex, filters }: { message: string; messageIndex: number; filters: { flavorProfile: string; power: string } }) => {
     const windowWidth = Dimensions.get("window").width;
     const [drinks, setDrinks] = useState<Drink[]>([]);
+    const [processedMessages, setProcessedMessages] = useState<Set<number>>(new Set());
     const scrollViewRef = useRef<ScrollView>(null);
 
     // Get Drinks
@@ -22,12 +23,10 @@ export const DrinksCarousel = ({ message, messageIndex, filters }: { message: st
         const response = await getDrinks(filters);
         const drinksData = response.drinks || response;
         setDrinks(drinksData);
-        // Reset pagination to first page when new drinks are fetched
         setMessagePagination(prev => ({
           ...prev,
           [messageIndex]: 0
         }));
-        // Scroll to first page
         setTimeout(() => {
           scrollViewRef.current?.scrollTo({ x: 0, y: 0, animated: false });
         }, 100);
@@ -68,6 +67,30 @@ export const DrinksCarousel = ({ message, messageIndex, filters }: { message: st
       const strengthMatch = !filters.power || drink.strength === filters.power;
       return flavorMatch && strengthMatch;
     });
+
+    // Add drinks to history with context
+    const addDrinksToHistory = async () => {
+      if (filteredDrinks && filteredDrinks.length > 0 && !processedMessages.has(messageIndex)) {
+        
+        setProcessedMessages((prev: Set<number>) => new Set([...prev, messageIndex]));
+        
+        for (const drink of filteredDrinks) {
+          try {
+            await addToHistory(drink);
+            console.log(`Drink "${drink.name}" added to history successfully`);
+          } catch (historyError) {
+            console.error(`Failed to add drink "${drink.name}" to history:`, historyError);
+          }
+        }
+      }
+    }
+    
+    // Add drinks to history when drinks are loaded (not when filtered)
+    useEffect(() => {
+      if (drinks.length > 0 && !processedMessages.has(messageIndex)) {
+        addDrinksToHistory();
+      }
+    }, [drinks, messageIndex]);
     
     // Horizontal Scroll View
     return (

@@ -12,7 +12,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Background from "../components/main-background/Background";
 import DrinkCard from "../components/drink-card/drink-card";
 import { Drink } from "../types/drink";
-import { SAMPLE_DRINKS } from "../constants/sample-drinks";
 import {
   ensureHistorySeeded,
   loadFavorites,
@@ -20,6 +19,7 @@ import {
   upsertHistoryEntry,
 } from "../utils/drink-storage";
 import { Ionicons } from "@expo/vector-icons";
+import { getHistory } from "@/api.js";
 
 const TABS = [
   { key: "favorites" as const, label: "Ulubione" },
@@ -45,14 +45,22 @@ const FavoritesHistoryScreen = () => {
         setIsLoading(true);
       }
 
+      // Load history
       try {
-        const [storedFavorites, seededHistory] = await Promise.all([
+        const historyData = await getHistory();
+        setHistory(historyData);
+      } catch (error) {
+        console.error("Error fetching history:", error);
+        setErrorMessage("Nie udało się wczytać historii. Spróbuj ponownie.");
+      }
+
+      try {
+        const [storedFavorites] = await Promise.all([
           loadFavorites(),
-          ensureHistorySeeded(SAMPLE_DRINKS),
+          // ensureHistorySeeded(historyData),
         ]);
 
         setFavorites(storedFavorites);
-        setHistory(seededHistory);
       } catch {
         setErrorMessage("Nie udało się wczytać danych. Spróbuj ponownie.");
       } finally {
