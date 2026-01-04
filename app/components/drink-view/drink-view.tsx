@@ -35,7 +35,13 @@ export const DrinkView: React.FC<DrinkViewProps> = ({
         >
           {/* Image Section */}
           <View style={styles.imageContainer}>
-            <Image source={image} style={styles.image} resizeMode="cover" />
+            {image ? (
+              <Image source={image} style={styles.image} resizeMode="cover" onError={(error) => console.log('Image load error:', error)} />
+            ) : (
+              <View style={[styles.image, styles.placeholderImage]}>
+                <Ionicons name="wine" size={40} color="#ffffff" />
+              </View>
+            )}
           </View>
 
           {/* Content Section */}
@@ -122,6 +128,11 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
+  },
+  placeholderImage: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   contentContainer: {
     flex: 1,

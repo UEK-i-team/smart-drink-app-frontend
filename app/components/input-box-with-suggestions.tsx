@@ -15,6 +15,8 @@ interface InputBoxWithSuggestionsProps {
   }) => void;
   placeholder?: string;
   suggestions?: string[];
+  disabled?: boolean;
+  validationError?: boolean;
 }
 
 export default function InputBoxWithSuggestions({
@@ -28,6 +30,8 @@ export default function InputBoxWithSuggestions({
     "Skomponuj na drinks, który zgadzasz się z wakacjami nad morzem",
     "Polecam drink orzeźwiający na gorący dzień",
   ],
+  disabled = false,
+  validationError = false,
 }: InputBoxWithSuggestionsProps) {
   const [showDrinkOptions, setShowDrinkOptions] = useState(false);
   const [filters, setFilters] = useState({ flavorProfile: "", power: "" });
@@ -42,8 +46,11 @@ export default function InputBoxWithSuggestions({
     setShowDrinkOptions(false)
   }
 
+  // Input validation
+  const isInputValid = value && value.trim().length >= 3 && value.trim().length <= 500 && !validationError;
+
   const handleClickSuggestion = (suggestion: string) => {
-    if (onChange) {
+    if (onChange && !disabled) {
       onChange(suggestion);
     }
   }
@@ -73,41 +80,56 @@ export default function InputBoxWithSuggestions({
           <View style={styles.inputLeft}>
             {/* Text Input */}
             <TextInput
-              style={styles.textInput}
+              style={[styles.textInput, disabled && styles.disabledInput]}
               placeholder={placeholder}
               placeholderTextColor="#999"
               multiline={false}
               onChangeText={onChange}
               value={value}
+              editable={!disabled}
             />
             
             {/* Left side buttons */}
             <View style={styles.leftButtons}>
-              <TouchableOpacity style={styles.inputIconButton}>
-                <Ionicons name="camera-outline" size={22} color="#333" />
+              <TouchableOpacity style={[styles.inputIconButton, disabled && styles.disabledButton]} disabled={disabled}>
+                <Ionicons name="camera-outline" size={22} color={disabled ? "#ccc" : "#333"} />
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => handleShowDrinkOptions(filters)} style={styles.inputIconButton}>
-                <Ionicons name="options-outline" size={22} color="#333" />
+              <TouchableOpacity 
+                onPress={() => handleShowDrinkOptions(filters)} 
+                style={[styles.inputIconButton, disabled && styles.disabledButton]}
+                disabled={disabled}
+              >
+                <Ionicons name="options-outline" size={22} color={disabled ? "#ccc" : "#333"} />
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Send button */}
           <TouchableOpacity 
-            style={styles.sendButton}
+            style={[styles.sendButton, !isInputValid && styles.disabledSendButton, disabled && styles.disabledSendButton]}
             onPress={onSend}
+            disabled={!isInputValid || disabled}
           >
-            <Ionicons name="arrow-up" size={24} color="#fff" />
+            <Ionicons name="arrow-up" size={24} color={isInputValid && !disabled ? "#fff" : "#ccc"} />
           </TouchableOpacity>
         </View>
       </View>
-      {showDrinkOptions && <DrinkOptions 
-        data={filters}
-        onSelectionChange={onSelectionChange} 
-        onClose={() => handleCloseDrinkOptions()} 
-        onConfirm={(filters: {flavorProfile: string; power: string}) => handleShowDrinkOptions(filters)}
-      />}
+          {validationError && value && (
+            <View style={styles.validationErrorContainer}>
+              <Text style={styles.validationErrorText}>
+                {value.trim().length < 3 ? "Minimum 3 characters required" : 
+                 value.trim().length > 500 ? "Maximum 500 characters" : 
+                 "Please enter a valid message"}
+              </Text>
+            </View>
+          )}
+          {showDrinkOptions && <DrinkOptions 
+            data={filters}
+            onSelectionChange={onSelectionChange} 
+            onClose={() => handleCloseDrinkOptions()} 
+            onConfirm={(filters: {flavorProfile: string; power: string}) => handleShowDrinkOptions(filters)}
+          />}
     </View>
   );
 }
@@ -198,5 +220,34 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
+  },
+  disabledSendButton: {
+    backgroundColor: "#f0f0f0",
+    shadowColor: "transparent",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  disabledInput: {
+    color: "#ccc",
+  },
+  disabledButton: {
+    backgroundColor: "#f8f8f8",
+    borderColor: "#e0e0e0",
+  },
+  validationErrorContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: "#FFF5F5",
+    borderRadius: 8,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: "#FF6B35",
+  },
+  validationErrorText: {
+    fontSize: 12,
+    color: "#FF6B35",
+    textAlign: "center",
   },
 });

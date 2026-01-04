@@ -11,16 +11,36 @@ import { Dimensions } from "react-native";
 import { Drink } from "../../types/drink";
 import { getDrinks, addToHistory } from "@/api.js";
 
-export const DrinksCarousel = ({ message, messageIndex, filters }: { message: string; messageIndex: number; filters: { flavorProfile: string; power: string } }) => {
+export const DrinksCarousel = ({ 
+  message, 
+  messageIndex, 
+  filters, 
+  onError 
+}: { 
+  message: string; 
+  messageIndex: number; 
+  filters: { flavorProfile: string; power: string };
+  onError?: (error: string) => void;
+}) => {
     const windowWidth = Dimensions.get("window").width;
     const [drinks, setDrinks] = useState<Drink[]>([]);
     const [processedMessages, setProcessedMessages] = useState<Set<number>>(new Set());
     const scrollViewRef = useRef<ScrollView>(null);
 
+    // Manual retry function
+    const retryFetch = () => {
+      fetchDrinks();
+    };
+
     // Get Drinks
     const fetchDrinks = async () => {
       try {
-        const response = await getDrinks(filters);
+        // Add timeout handling
+        const timeout = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Request timeout')), 15000)
+        );
+        
+        const response = await Promise.race([getDrinks(filters), timeout]);
         const drinksData = response.drinks || response;
         setDrinks(drinksData);
         setMessagePagination(prev => ({
@@ -33,12 +53,36 @@ export const DrinksCarousel = ({ message, messageIndex, filters }: { message: st
       } catch (error) {
         console.error('Error fetching drinks:', error);
         setDrinks([]);
+        
+        // Handle specific error types
+        let errorMessage = 'Unknown error occurred while fetching drinks';
+        
+        if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+          errorMessage = 'Network error: Unable to connect to server. Check your internet connection.';
+        } else if (error instanceof Error && error.message.includes('Request timeout')) {
+          errorMessage = 'Timeout error: Server took too long to respond. Please try again.';
+        } else if (error instanceof Error && error.message.includes('ERR_CONNECTION_REFUSED')) {
+          errorMessage = 'Connection refused: Backend server is not running or not accessible.';
+        } else if (error instanceof Error && error.message.includes('404')) {
+          console.log('Image 404 error (expected):', error.message);
+          return;
+        } else if (typeof error === 'string' && error.includes('404')) {
+          console.log('Image URL 404 error (expected):', error);
+          return;
+        }
+        
+        console.error(errorMessage);
+        onError?.(errorMessage);
       }
     }
     
+    const handleImageError = (error: any) => {
+      console.log('Image loading error:', error);
+    };
+    
     useEffect(() => {
       fetchDrinks();
-    }, [filters]);
+    }, [filters, messageIndex]); 
     
     if (!message) return null;
     
@@ -112,7 +156,7 @@ export const DrinksCarousel = ({ message, messageIndex, filters }: { message: st
               <View key={drink.name || index} style={styles.drinkContainer}>
                 <DrinkView 
                     name={drink.name}
-                    image={{uri: drink.image_description}}
+                    image={drink.image_description && drink.image_description.startsWith('http') ? {uri: drink.image_description} : null}
                     ingredients={drink.ingredients || []}
                     description={drink.description || ""}
                   />
