@@ -118,9 +118,9 @@ export default function InputBoxWithSuggestions({
           {validationError && value && (
             <View style={styles.validationErrorContainer}>
               <Text style={styles.validationErrorText}>
-                {value.trim().length < 3 ? "Minimum 3 characters required" : 
-                 value.trim().length > 500 ? "Maximum 500 characters" : 
-                 "Please enter a valid message"}
+                {value.trim().length < 3 ? "Wymagane minimum 3 znaki" : 
+                 value.trim().length > 500 ? "Maksimum 500 znaków" : 
+                 "Wprowadź prawidłową wiadomość"}
               </Text>
             </View>
           )}

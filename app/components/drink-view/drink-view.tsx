@@ -129,11 +129,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-  placeholderImage: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
   contentContainer: {
     flex: 1,
     padding: 16,

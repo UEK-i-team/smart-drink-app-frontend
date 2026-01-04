@@ -55,19 +55,19 @@ export const DrinksCarousel = ({
         setDrinks([]);
         
         // Handle specific error types
-        let errorMessage = 'Unknown error occurred while fetching drinks';
+        let errorMessage = 'Wystąpił nieznany błąd podczas pobierania drinków';
         
         if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-          errorMessage = 'Network error: Unable to connect to server. Check your internet connection.';
+          errorMessage = 'Błąd sieci: Nie można połączyć z serwerem. Sprawdź połączenie z internetem.';
         } else if (error instanceof Error && error.message.includes('Request timeout')) {
-          errorMessage = 'Timeout error: Server took too long to respond. Please try again.';
+          errorMessage = 'Błąd przekroczenia czasu: Serwer odpowiada zbyt wolno. Spróbuj ponownie.';
         } else if (error instanceof Error && error.message.includes('ERR_CONNECTION_REFUSED')) {
-          errorMessage = 'Connection refused: Backend server is not running or not accessible.';
+          errorMessage = 'Odrzucono połączenie: Serwer backend nie jest uruchomiony lub nie jest dostępny.';
         } else if (error instanceof Error && error.message.includes('404')) {
-          console.log('Image 404 error (expected):', error.message);
+          console.log('Błąd 404 obrazu (oczekiwany):', error.message);
           return;
         } else if (typeof error === 'string' && error.includes('404')) {
-          console.log('Image URL 404 error (expected):', error);
+          console.log('Błąd 404 URL obrazu (oczekiwany):', error);
           return;
         }
         
@@ -75,10 +75,6 @@ export const DrinksCarousel = ({
         onError?.(errorMessage);
       }
     }
-    
-    const handleImageError = (error: any) => {
-      console.log('Image loading error:', error);
-    };
     
     useEffect(() => {
       fetchDrinks();

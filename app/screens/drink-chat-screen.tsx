@@ -4,7 +4,7 @@ import { ChatBoxText } from "../components/chat-box-text/chat-box-text";
 import { DrinkInfoCard, englishToPolishPower, englishToPolishTaste } from "../components/drink-info-card/drink-info-card";
 import InputBoxWithSuggestions from "../components/input-box-with-suggestions";
 import { DrinksCarousel } from "../components/drinks-carousel/drinks-carousel";
-import { ErrorDisplay } from "../components/error-display/error-display";
+import ErrorDisplay from "../components/error-display/error-display";
 
 export default function DrinkChatScreen() {
   const [messages, setMessages] = useState<string[]>([]);
