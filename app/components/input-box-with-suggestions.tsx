@@ -1,70 +1,135 @@
+import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { ScrollView, Text } from "react-native";
 import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { DrinkOptions } from "./drink-options/drink-options";
 
 interface InputBoxWithSuggestionsProps {
+  value?: string;
+  onChange?: (message: string) => void;
   onSend?: () => void;
+  onSelectionChange?: (selectedItems: {
+    drinkOptions: string[];
+    power: string;
+    flavorProfile: string;
+  }) => void;
   placeholder?: string;
   suggestions?: string[];
+  disabled?: boolean;
+  validationError?: boolean;
 }
 
 export default function InputBoxWithSuggestions({
+  value,
+  onChange,
   onSend,
+  onSelectionChange,
   placeholder = "Z jakim drinkiem ci pomóc",
   suggestions = [
     "Skomponuj drinks ze składników: Wódka, Cytryna, Mięta",
     "Skomponuj na drinks, który zgadzasz się z wakacjami nad morzem",
     "Polecam drink orzeźwiający na gorący dzień",
   ],
+  disabled = false,
+  validationError = false,
 }: InputBoxWithSuggestionsProps) {
+  const [showDrinkOptions, setShowDrinkOptions] = useState(false);
+  const [filters, setFilters] = useState({ flavorProfile: "", power: "" });
+  
+  // Show drink options
+  const handleShowDrinkOptions = (newData: { flavorProfile: string; power: string }) => {
+    setFilters(newData)
+    setShowDrinkOptions(true)
+  }
+
+  const handleCloseDrinkOptions = () => {
+    setShowDrinkOptions(false)
+  }
+
+  // Input validation
+  const isInputValid = value && value.trim().length >= 3 && value.trim().length <= 500 && !validationError;
+
+  const handleClickSuggestion = (suggestion: string) => {
+    if (onChange && !disabled) {
+      onChange(suggestion);
+    }
+  }
+
   return (
     <View style={styles.container}>
       {/* Scrollable suggestion chips */}
-      {/* <ScrollView 
+      {!value && (
+      <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
         style={styles.suggestionsContainer}
         contentContainerStyle={styles.suggestionsContent}
       >
         {suggestions.map((suggestion, index) => (
-          <View key={index} style={styles.suggestionChip}>
-            <Text style={styles.suggestionText}>{suggestion}</Text>
-          </View>
+          <TouchableOpacity onPress={() => handleClickSuggestion(suggestion)}>
+            <View key={index} style={styles.suggestionChip}>
+              <Text>{suggestion}</Text>
+            </View>
+          </TouchableOpacity>
         ))}
-      </ScrollView> */}
-
+      </ScrollView>
+      )}
       {/* Input section */}
       <View style={styles.inputContainer}>
         <View style={styles.inputContent}>
           <View style={styles.inputLeft}>
             {/* Text Input */}
             <TextInput
-              style={styles.textInput}
+              style={[styles.textInput, disabled && styles.disabledInput]}
               placeholder={placeholder}
               placeholderTextColor="#999"
               multiline={false}
+              onChangeText={onChange}
+              value={value}
+              editable={!disabled}
             />
             
             {/* Left side buttons */}
             <View style={styles.leftButtons}>
-              <TouchableOpacity style={styles.inputIconButton}>
-                <Ionicons name="camera-outline" size={22} color="#333" />
+              <TouchableOpacity style={[styles.inputIconButton, disabled && styles.disabledButton]} disabled={disabled}>
+                <Ionicons name="camera-outline" size={22} color={disabled ? "#ccc" : "#333"} />
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.inputIconButton}>
-                <Ionicons name="options-outline" size={22} color="#333" />
+              <TouchableOpacity 
+                onPress={() => handleShowDrinkOptions(filters)} 
+                style={[styles.inputIconButton, disabled && styles.disabledButton]}
+                disabled={disabled}
+              >
+                <Ionicons name="options-outline" size={22} color={disabled ? "#ccc" : "#333"} />
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Send button */}
           <TouchableOpacity 
-            style={styles.sendButton}
+            style={[styles.sendButton, !isInputValid && styles.disabledSendButton, disabled && styles.disabledSendButton]}
             onPress={onSend}
+            disabled={!isInputValid || disabled}
           >
-            <Ionicons name="arrow-up" size={24} color="#fff" />
+            <Ionicons name="arrow-up" size={24} color={isInputValid && !disabled ? "#fff" : "#ccc"} />
           </TouchableOpacity>
         </View>
       </View>
+          {validationError && value && (
+            <View style={styles.validationErrorContainer}>
+              <Text style={styles.validationErrorText}>
+                {value.trim().length < 3 ? "Wymagane minimum 3 znaki" : 
+                 value.trim().length > 500 ? "Maksimum 500 znaków" : 
+                 "Wprowadź prawidłową wiadomość"}
+              </Text>
+            </View>
+          )}
+          {showDrinkOptions && <DrinkOptions 
+            data={filters}
+            onSelectionChange={onSelectionChange} 
+            onClose={() => handleCloseDrinkOptions()} 
+            onConfirm={(filters: {flavorProfile: string; power: string}) => handleShowDrinkOptions(filters)}
+          />}
     </View>
   );
 }
@@ -155,5 +220,34 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
+  },
+  disabledSendButton: {
+    backgroundColor: "#f0f0f0",
+    shadowColor: "transparent",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  disabledInput: {
+    color: "#ccc",
+  },
+  disabledButton: {
+    backgroundColor: "#f8f8f8",
+    borderColor: "#e0e0e0",
+  },
+  validationErrorContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: "#FFF5F5",
+    borderRadius: 8,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: "#FF6B35",
+  },
+  validationErrorText: {
+    fontSize: 12,
+    color: "#FF6B35",
+    textAlign: "center",
   },
 });

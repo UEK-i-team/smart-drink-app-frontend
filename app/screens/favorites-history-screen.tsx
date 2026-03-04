@@ -11,8 +11,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Background from "../components/main-background/Background";
 import DrinkCard from "../components/drink-card/drink-card";
+import ErrorDisplay from "../components/error-display/error-display";
 import { Drink } from "../types/drink";
-import { SAMPLE_DRINKS } from "../constants/sample-drinks";
 import {
   ensureHistorySeeded,
   loadFavorites,
@@ -20,6 +20,7 @@ import {
   upsertHistoryEntry,
 } from "../utils/drink-storage";
 import { Ionicons } from "@expo/vector-icons";
+import { getHistory } from "@/api.js";
 
 const TABS = [
   { key: "favorites" as const, label: "Ulubione" },
@@ -45,16 +46,53 @@ const FavoritesHistoryScreen = () => {
         setIsLoading(true);
       }
 
+      // Load history
       try {
-        const [storedFavorites, seededHistory] = await Promise.all([
+        const historyData = await getHistory();
+        setHistory(historyData);
+      } catch (error) {
+        let errorMessage = "Nie udało się wczytać historii. Spróbuj ponownie.";
+        
+        if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+          errorMessage = 'Błąd sieci: Nie można połączyć z serwerem. Sprawdź połączenie z internetem.';
+        } else if (error instanceof Error && error.message.includes('ERR_CONNECTION_REFUSED')) {
+          errorMessage = 'Odrzucono połączenie: Serwer backend nie jest uruchomiony lub nie jest dostępny.';
+        } else if (error instanceof Error && error.message.includes('timeout')) {
+          errorMessage = 'Przekroczono czas oczekiwania: Serwer odpowiada zbyt wolno. Spróbuj ponownie.';
+        } else if (typeof error === 'string' && error.includes('ERR_CONNECTION_REFUSED')) {
+          errorMessage = 'Odrzucono połączenie: Serwer backend nie jest uruchomiony lub nie jest dostępny.';
+        } else if (error && typeof error === 'object' && 'message' in error) {
+          const errorMsg = (error as any).message;
+          if (errorMsg.includes('ERR_CONNECTION_REFUSED')) {
+            errorMessage = 'Odrzucono połączenie: Serwer backend nie jest uruchomiony lub nie jest dostępny.';
+          } else if (errorMsg.includes('Failed to fetch')) {
+            errorMessage = 'Błąd sieci: Nie można połączyć z serwerem. Sprawdź połączenie z internetem.';
+          }
+        }
+        
+        setErrorMessage(errorMessage);
+      }
+
+      try {
+        const [storedFavorites] = await Promise.all([
           loadFavorites(),
-          ensureHistorySeeded(SAMPLE_DRINKS),
+          // ensureHistorySeeded(historyData),
         ]);
 
         setFavorites(storedFavorites);
-        setHistory(seededHistory);
-      } catch {
-        setErrorMessage("Nie udało się wczytać danych. Spróbuj ponownie.");
+      } catch (error) {
+        
+        let errorMessage = "Nie udało się wczytać danych. Spróbuj ponownie.";
+        
+        if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+          errorMessage = 'Błąd sieci: Nie można połączyć z serwerem. Sprawdź połączenie z internetem.';
+        } else if (error instanceof Error && error.message.includes('ERR_CONNECTION_REFUSED')) {
+          errorMessage = 'Odrzucono połączenie: Serwer backend nie jest uruchomiony lub nie jest dostępny.';
+        } else if (error instanceof Error && error.message.includes('timeout')) {
+          errorMessage = 'Przekroczono czas oczekiwania: Serwer odpowiada zbyt wolno. Spróbuj ponownie.';
+        }
+        
+        setErrorMessage(errorMessage);
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
@@ -65,6 +103,7 @@ const FavoritesHistoryScreen = () => {
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
+    setErrorMessage(null);
     await loadData({ skipLoader: true });
   }, [loadData]);
 
@@ -76,8 +115,19 @@ const FavoritesHistoryScreen = () => {
 
         const updatedHistory = await upsertHistoryEntry(drink, history);
         setHistory(updatedHistory);
-      } catch {
-        setErrorMessage("Nie udało się zapisać zmian. Spróbuj ponownie.");
+      } catch (error) {
+        
+        let errorMessage = "Nie udało się zapisać zmian. Spróbuj ponownie.";
+        
+        if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+          errorMessage = 'Błąd sieci: Nie można połączyć z serwerem. Sprawdź połączenie z internetem.';
+        } else if (error instanceof Error && error.message.includes('ERR_CONNECTION_REFUSED')) {
+          errorMessage = 'Odrzucono połączenie: Serwer backend nie jest uruchomiony lub nie jest dostępny.';
+        } else if (error instanceof Error && error.message.includes('timeout')) {
+          errorMessage = 'Przekroczono czas oczekiwania: Serwer odpowiada zbyt wolno. Spróbuj ponownie.';
+        }
+        
+        setErrorMessage(errorMessage);
       }
     },
     [favorites, history]
@@ -86,6 +136,11 @@ const FavoritesHistoryScreen = () => {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Load data when tab changes
+  useEffect(() => {
+    loadData({ skipLoader: true });
+  }, [activeTab, loadData]);
 
   const displayedData = activeTab === "favorites" ? favorites : history;
 
@@ -137,7 +192,6 @@ const FavoritesHistoryScreen = () => {
             </Pressable>
           ))}
         </View>
-        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
         {isLoading ? (
           <View style={styles.loaderWrapper}>
             <ActivityIndicator color="#111" />
@@ -161,6 +215,12 @@ const FavoritesHistoryScreen = () => {
           />
         )}
       </View>
+      <ErrorDisplay 
+          error={errorMessage}
+          onDismiss={() => setErrorMessage(null)}
+          autoHide={true}
+          duration={8000}
+        />
     </View>
   );
 };

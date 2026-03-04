@@ -25,78 +25,89 @@ export const DrinkView: React.FC<DrinkViewProps> = ({
   onPress,
 }) => {
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
-      <LinearGradient
-        colors={["#D94A3D", "#C83828"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.container}
-      >
-        {/* Image Section */}
-        <View style={styles.imageContainer}>
-          <Image source={image} style={styles.image} resizeMode="cover" />
-        </View>
+    <View style={styles.wrapper}>
+      <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
+        <LinearGradient
+          colors={["#D94A3D", "#C83828"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.container}
+        >
+          {/* Image Section */}
+          <View style={styles.imageContainer}>
+            {image ? (
+              <Image source={image} style={styles.image} resizeMode="cover" onError={(error) => console.log('Image load error:', error)} />
+            ) : (
+              <View style={[styles.image, styles.placeholderImage]}>
+                <Ionicons name="wine" size={40} color="#ffffff" />
+              </View>
+            )}
+          </View>
 
-        {/* Content Section */}
-        <View style={styles.contentContainer}>
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <Text style={styles.title}>{name}</Text>
-              <View style={styles.statusRow}>
-                <Text style={styles.recipeLabel}>PRZEPIS DRINKA</Text>
-                {isSelected && (
-                  <>
-                    <View style={styles.dot} />
-                    <Text style={styles.statusText}>Wybrany</Text>
-                  </>
-                )}
+          {/* Content Section */}
+          <View style={styles.contentContainer}>
+            {/* Header */}
+            <View style={styles.header}>
+              <View style={styles.headerLeft}>
+                <Text style={styles.title}>{name}</Text>
+                <View style={styles.statusRow}>
+                  <Text style={styles.recipeLabel}>PRZEPIS DRINKA</Text>
+                  {isSelected && (
+                    <>
+                      <View style={styles.dot} />
+                      <Text style={styles.statusText}>Wybrany</Text>
+                    </>
+                  )}
+                </View>
               </View>
             </View>
 
-            {/* Favorite Button */}
-            <TouchableOpacity
-              onPress={onFavoritePress}
-              style={styles.favoriteButton}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Ionicons
-                name={isFavorite ? "heart" : "heart-outline"}
-                size={24}
-                color="white"
-              />
-            </TouchableOpacity>
-          </View>
+            {/* Ingredients */}
+            <View style={styles.ingredientsContainer}>
+              {ingredients.map((ingredient, index) => (
+                <React.Fragment key={index}>
+                  <Text style={styles.ingredient}>{ingredient}</Text>
+                  {index < ingredients.length - 1 && (
+                    <View style={styles.separator} />
+                  )}
+                </React.Fragment>
+              ))}
+            </View>
 
-          {/* Ingredients */}
-          <View style={styles.ingredientsContainer}>
-            {ingredients.map((ingredient, index) => (
-              <React.Fragment key={index}>
-                <Text style={styles.ingredient}>{ingredient}</Text>
-                {index < ingredients.length - 1 && (
-                  <View style={styles.separator} />
-                )}
-              </React.Fragment>
-            ))}
+            {/* Description */}
+            <Text style={styles.description} numberOfLines={3}>
+              {description}
+            </Text>
           </View>
-
-          {/* Description */}
-          <Text style={styles.description} numberOfLines={3}>
-            {description}
-          </Text>
-        </View>
-      </LinearGradient>
-    </TouchableOpacity>
+        </LinearGradient>
+      </TouchableOpacity>
+      
+      {/* Favorite Button - positioned above the container */}
+      {/* <TouchableOpacity
+        onPress={onFavoritePress}
+        style={styles.favoriteButton}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Ionicons
+          name={isFavorite ? "heart" : "heart-outline"}
+          size={24}
+          color="white"
+        />
+      </TouchableOpacity> */}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    borderRadius: 16,
-    overflow: "hidden",
+  wrapper: {
+    position: "relative",
     marginHorizontal: 16,
     marginVertical: 8,
+  },
+  container: {
+    flexDirection: "row",
+    borderRadius: 26,
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -161,10 +172,15 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     color: "white",
   },
-  favoriteButton: {
-    padding: 4,
-    marginLeft: 8,
-  },
+  // favoriteButton: {
+  //   padding: 8,
+  //   position: "absolute",
+  //   top: -8,
+  //   right: -8,
+  //   backgroundColor: "black",
+  //   borderRadius: 20,
+  //   zIndex: 1,
+  // },
   ingredientsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",

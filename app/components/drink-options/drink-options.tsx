@@ -7,6 +7,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Modal
 } from "react-native";
 
 export interface DrinkOptionItem {
@@ -24,12 +25,19 @@ export interface DrinkOptionSection {
 }
 
 export interface DrinkOptionsProps {
+  data?: {
+    power: string;
+    flavorProfile: string;
+  };
   sections?: DrinkOptionSection[];
   powerLevels?: string[];
+  powerLevelsLabels?: string[];
   flavorProfiles?: string[];
+  flavorProfilesLabels?: string[];
   selectedPower?: string;
   selectedFlavorProfile?: string;
-  onConfirm?: () => void;
+  onConfirm?: (data: { power: string; flavorProfile: string }) => void;
+  onClose?: () => void;
   onSelectionChange?: (selectedItems: {
     drinkOptions: string[];
     power: string;
@@ -61,11 +69,14 @@ export const DrinkOptions: React.FC<DrinkOptionsProps> = ({
       isExpanded: false,
     },
   ],
-  powerLevels = ["Słabe", "Średnie", "Mocne"],
-  flavorProfiles = ["Słodki", "Wytrawy", "Pikantny", "Półsłodki"],
-  selectedPower = "Średnie",
-  selectedFlavorProfile = "Słodki",
+  powerLevels = ["Low", "Medium", "High"],
+  powerLevelsLabels = ["Słabe", "Średnie", "Mocne"],
+  flavorProfiles = ["Sweet", "Dry", "Semi_sweet"],
+  flavorProfilesLabels = ["Słodki", "Wytrawny", "Półsłodki"],
+  selectedPower = "Medium",
+  selectedFlavorProfile = "Sweet",
   onConfirm,
+  onClose,
   onSelectionChange,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -172,7 +183,14 @@ export const DrinkOptions: React.FC<DrinkOptionsProps> = ({
       });
     }
     if (onConfirm) {
-      onConfirm();
+      const filterData = {
+        power: selectedPowerState,
+        flavorProfile: selectedFlavorState,
+      }
+      onConfirm(filterData);
+    }
+    if (onClose) {
+      onClose();
     }
   };
 
@@ -184,117 +202,254 @@ export const DrinkOptions: React.FC<DrinkOptionsProps> = ({
   }));
 
   return (
-    <View style={styles.container}>
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#333" style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Wyszukaj składnik/alkohol"
-          placeholderTextColor="#999"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          onFocus={() => setIsSearchFocused(true)}
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity
-            onPress={() => setSearchQuery("")}
-            style={styles.clearButton}
+    <Modal animationType="slide">
+      <View style={styles.container}>
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="#333" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Wyszukaj składnik/alkohol"
+            placeholderTextColor="#999"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onFocus={() => setIsSearchFocused(true)}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchQuery("")}
+              style={styles.clearButton}
+            >
+              <Ionicons name="close-circle" size={20} color="#999" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Show filtered results when search is focused */}
+        {isSearchFocused && searchQuery.length > 0 && (
+          <ScrollView
+            style={styles.searchResultsContainer}
+            contentContainerStyle={styles.searchResultsContent}
+            scrollEnabled={true}
           >
-            <Ionicons name="close-circle" size={20} color="#999" />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Show filtered results when search is focused */}
-      {isSearchFocused && searchQuery.length > 0 && (
-        <ScrollView
-          style={styles.searchResultsContainer}
-          contentContainerStyle={styles.searchResultsContent}
-          scrollEnabled={true}
-        >
-          {sectionsState
-            .filter((section) => section.id !== "recent")
-            .flatMap((section) =>
-              section.items
-                .filter((item) =>
-                  item.label.toLowerCase().includes(searchQuery.toLowerCase())
-                )
-                .map((item) => (
-                  <TouchableOpacity
-                    key={`${section.id}-${item.id}`}
-                    style={styles.searchResultItem}
-                    onPress={() => {
-                      handleOptionSelect(section.id, item.id);
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.searchResultText}>{item.label}</Text>
-                    <View
-                      style={[
-                        styles.checkbox,
-                        item.isSelected && styles.checkboxSelected,
-                      ]}
+            {sectionsState
+              .filter((section) => section.id !== "recent")
+              .flatMap((section) =>
+                section.items
+                  .filter((item) =>
+                    item.label.toLowerCase().includes(searchQuery.toLowerCase())
+                  )
+                  .map((item) => (
+                    <TouchableOpacity
+                      key={`${section.id}-${item.id}`}
+                      style={styles.searchResultItem}
+                      onPress={() => {
+                        handleOptionSelect(section.id, item.id);
+                      }}
+                      activeOpacity={0.7}
                     >
-                      {item.isSelected && (
-                        <Ionicons
-                          name="checkmark"
-                          size={16}
-                          color="#FF6B35"
-                        />
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                ))
-            )}
-        </ScrollView>
-      )}
+                      <Text style={styles.searchResultText}>{item.label}</Text>
+                      <View
+                        style={[
+                          styles.checkbox,
+                          item.isSelected && styles.checkboxSelected,
+                        ]}
+                      >
+                        {item.isSelected && (
+                          <Ionicons
+                            name="checkmark"
+                            size={16}
+                            color="#FF6B35"
+                          />
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  ))
+              )}
+          </ScrollView>
+        )}
 
-      {/* Scrollable Sections - Hidden when search focused and text entered */}
-      {!(isSearchFocused && searchQuery.length > 0) && (
-      <ScrollView
-        style={styles.scrollContainer}
-        contentContainerStyle={styles.scrollContent}
-        scrollIndicatorInsets={{ right: 1 }}
-      >
-        {filteredSections.map((section) => (
-          <View key={section.id} style={styles.section}>
+        {/* Scrollable Sections - Hidden when search focused and text entered */}
+        {!(isSearchFocused && searchQuery.length > 0) && (
+        <ScrollView
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.scrollContent}
+          scrollIndicatorInsets={{ right: 1 }}
+        >
+          {filteredSections.map((section) => (
+            <View key={section.id} style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <View style={styles.headerLeft}>
+                  <Ionicons
+                    name={section.icon as any}
+                    size={20}
+                    color="#333"
+                    style={styles.headerIcon}
+                  />
+                  <Text style={styles.sectionTitle}>{section.title}</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.expandButton}
+                  onPress={() => handleSectionToggle(section.id)}
+                >
+                  <Text style={styles.expandButtonText}>
+                    {section.isExpanded ? "Zwiń" : "Rozwiń"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {section.isExpanded && section.items.length > 0 && (
+                <View style={styles.itemsContainer}>
+                  {section.items.map((item) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={styles.item}
+                      onPress={() => handleOptionSelect(section.id, item.id)}
+                    >
+                      <Text style={styles.itemText}>{item.label}</Text>
+                      <View
+                        style={[
+                          styles.radioButton,
+                          item.isSelected && styles.radioButtonSelected,
+                        ]}
+                      >
+                        {item.isSelected && (
+                          <View style={styles.radioButtonInner} />
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          ))}
+
+          {/* Selected Options Section - Always visible */}
+          <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <View style={styles.headerLeft}>
                 <Ionicons
-                  name={section.icon as any}
+                  name="checkmark-done-outline"
                   size={20}
                   color="#333"
                   style={styles.headerIcon}
                 />
-                <Text style={styles.sectionTitle}>{section.title}</Text>
+                <Text style={styles.sectionTitle}>Wybrane</Text>
+              </View>
+            </View>
+
+            {getSelectedOptions().length > 0 ? (
+              <View style={styles.selectedTagsContainer}>
+                {getSelectedOptions().map((option, index) => (
+                  <View key={index} style={styles.selectedTag}>
+                    <Text style={styles.selectedTagText}>{option}</Text>
+                    <TouchableOpacity
+                      onPress={() => handleRemoveOption(option)}
+                      style={styles.removeButton}
+                    >
+                      <Ionicons name="close" size={16} color="#FF6B35" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <View style={styles.emptyStateContainer}>
+                <Text style={styles.emptyStateText}>Brak wybranych składników</Text>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+        )}
+
+        {/* Fixed Bottom Sections - Hidden when search focused and text entered */}
+        {!(isSearchFocused && searchQuery.length > 0) && (
+        <View style={styles.fixedBottom}>
+          {/* Power Section */}
+          <View style={styles.fixedSection}>
+            <View style={styles.fixedSectionHeader}>
+              <View style={styles.headerLeft}>
+                <Ionicons
+                  name="flash-outline"
+                  size={20}
+                  color="#333"
+                  style={styles.headerIcon}
+                />
+                <Text style={styles.sectionTitle}>Moc</Text>
+              </View>
+            </View>
+
+            <View style={styles.powerButtonsContainer}>
+              {powerLevels.map((level, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.powerButton,
+                    selectedPowerState === level && styles.powerButtonSelected,
+                  ]}
+                  onPress={() => setSelectedPowerState(level)}
+                >
+                  <Text
+                    style={[
+                      styles.powerButtonText,
+                      selectedPowerState === level &&
+                        styles.powerButtonTextSelected,
+                    ]}
+                  >
+                    {powerLevelsLabels?.[index] || level}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Flavor Profile Section */}
+          <View style={styles.fixedSection}>
+            <View style={styles.fixedSectionHeader}>
+              <View style={styles.headerLeft}>
+                <Ionicons
+                  name="flame-outline"
+                  size={20}
+                  color="#333"
+                  style={styles.headerIcon}
+                />
+                <Text style={styles.sectionTitle}>Profil smaku</Text>
               </View>
               <TouchableOpacity
                 style={styles.expandButton}
-                onPress={() => handleSectionToggle(section.id)}
+                onPress={() => setFlavorExpanded(!flavorExpanded)}
               >
                 <Text style={styles.expandButtonText}>
-                  {section.isExpanded ? "Zwiń" : "Rozwiń"}
+                  {flavorExpanded ? "Zwiń" : "Rozwiń"}
                 </Text>
               </TouchableOpacity>
             </View>
 
-            {section.isExpanded && section.items.length > 0 && (
+            {flavorExpanded && (
               <View style={styles.itemsContainer}>
-                {section.items.map((item) => (
+                {flavorProfiles.map((profile, index) => (
                   <TouchableOpacity
-                    key={item.id}
+                    key={index}
                     style={styles.item}
-                    onPress={() => handleOptionSelect(section.id, item.id)}
+                    onPress={() => {
+                      setSelectedFlavorState(profile);
+                    }}
                   >
-                    <Text style={styles.itemText}>{item.label}</Text>
+                    <Text
+                      style={[
+                        styles.itemText,
+                        selectedFlavorState === profile && styles.selectedItemText,
+                      ]}
+                    >
+                      {flavorProfilesLabels?.[index] || profile}
+                    </Text>
                     <View
                       style={[
                         styles.radioButton,
-                        item.isSelected && styles.radioButtonSelected,
+                        selectedFlavorState === profile &&
+                          styles.radioButtonSelected,
                       ]}
                     >
-                      {item.isSelected && (
+                      {selectedFlavorState === profile && (
                         <View style={styles.radioButtonInner} />
                       )}
                     </View>
@@ -303,153 +458,18 @@ export const DrinkOptions: React.FC<DrinkOptionsProps> = ({
               </View>
             )}
           </View>
-        ))}
 
-        {/* Selected Options Section - Always visible */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.headerLeft}>
-              <Ionicons
-                name="checkmark-done-outline"
-                size={20}
-                color="#333"
-                style={styles.headerIcon}
-              />
-              <Text style={styles.sectionTitle}>Wybrane</Text>
-            </View>
-          </View>
-
-          {getSelectedOptions().length > 0 ? (
-            <View style={styles.selectedTagsContainer}>
-              {getSelectedOptions().map((option, index) => (
-                <View key={index} style={styles.selectedTag}>
-                  <Text style={styles.selectedTagText}>{option}</Text>
-                  <TouchableOpacity
-                    onPress={() => handleRemoveOption(option)}
-                    style={styles.removeButton}
-                  >
-                    <Ionicons name="close" size={16} color="#FF6B35" />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          ) : (
-            <View style={styles.emptyStateContainer}>
-              <Text style={styles.emptyStateText}>Brak wybranych składników</Text>
-            </View>
-          )}
+          {/* Confirm Button */}
+          <TouchableOpacity
+            style={styles.confirmButton}
+            onPress={handleConfirm}
+          >
+            <Text style={styles.confirmButtonText}>Zatwierdź</Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
-      )}
-
-      {/* Fixed Bottom Sections - Hidden when search focused and text entered */}
-      {!(isSearchFocused && searchQuery.length > 0) && (
-      <View style={styles.fixedBottom}>
-        {/* Power Section */}
-        <View style={styles.fixedSection}>
-          <View style={styles.fixedSectionHeader}>
-            <View style={styles.headerLeft}>
-              <Ionicons
-                name="flash-outline"
-                size={20}
-                color="#333"
-                style={styles.headerIcon}
-              />
-              <Text style={styles.sectionTitle}>Moc</Text>
-            </View>
-          </View>
-
-          <View style={styles.powerButtonsContainer}>
-            {powerLevels.map((level, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.powerButton,
-                  selectedPowerState === level && styles.powerButtonSelected,
-                ]}
-                onPress={() => setSelectedPowerState(level)}
-              >
-                <Text
-                  style={[
-                    styles.powerButtonText,
-                    selectedPowerState === level &&
-                      styles.powerButtonTextSelected,
-                  ]}
-                >
-                  {level}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Flavor Profile Section */}
-        <View style={styles.fixedSection}>
-          <View style={styles.fixedSectionHeader}>
-            <View style={styles.headerLeft}>
-              <Ionicons
-                name="flame-outline"
-                size={20}
-                color="#333"
-                style={styles.headerIcon}
-              />
-              <Text style={styles.sectionTitle}>Profil smaku</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.expandButton}
-              onPress={() => setFlavorExpanded(!flavorExpanded)}
-            >
-              <Text style={styles.expandButtonText}>
-                {flavorExpanded ? "Zwiń" : "Rozwiń"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {flavorExpanded && (
-            <View style={styles.itemsContainer}>
-              {flavorProfiles.map((profile, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.item}
-                  onPress={() => {
-                    setSelectedFlavorState(profile);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.itemText,
-                      selectedFlavorState === profile && styles.selectedItemText,
-                    ]}
-                  >
-                    {profile}
-                  </Text>
-                  <View
-                    style={[
-                      styles.radioButton,
-                      selectedFlavorState === profile &&
-                        styles.radioButtonSelected,
-                    ]}
-                  >
-                    {selectedFlavorState === profile && (
-                      <View style={styles.radioButtonInner} />
-                    )}
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
-
-        {/* Confirm Button */}
-        <TouchableOpacity
-          style={styles.confirmButton}
-          onPress={handleConfirm}
-        >
-          <Text style={styles.confirmButtonText}>Zatwierdź</Text>
-        </TouchableOpacity>
+        )}
       </View>
-      )}
-    </View>
+    </Modal>
   );
 };
 
