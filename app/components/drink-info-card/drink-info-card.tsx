@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { ReactNode } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { ReactNode, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { DrinkOptions } from "../drink-options/drink-options";
 
 const ACTIVE_BOLT_COLOR = "#FF6B00";
 const INACTIVE_BOLT_COLOR = "#CDC5BD";
@@ -93,18 +94,27 @@ export interface DrinkInfoCardProps {
   tasteProfile: string;
   tasteProfileIcon?: ReactNode;
   drinkPower: string;
+  onSelectionChange?: (selectedItems: {
+    drinkOptions: string[];
+    power: string;
+    flavorProfile: string;
+  }) => void;
 }
 
 export const DrinkInfoCard: React.FC<DrinkInfoCardProps> = ({
   tasteProfile,
   tasteProfileIcon,
   drinkPower,
+  onSelectionChange,
 }) => {
-  const tasteConfig = resolveVariant(tasteProfile, TASTE_PROFILE_CONFIG);
-  const powerConfig = resolveVariant(drinkPower, POWER_LEVEL_CONFIG);
+  const [showDrinkOptions, setShowDrinkOptions] = useState(false);
+  const [filters, setFilters] = useState({ flavorProfile: tasteProfile, power: drinkPower });
 
-  const resolvedTasteLabel = tasteConfig?.labelPl ?? tasteProfile;
-  const resolvedPowerLabel = powerConfig?.labelPl ?? drinkPower;
+  const tasteConfig = resolveVariant(filters.flavorProfile, TASTE_PROFILE_CONFIG);
+  const powerConfig = resolveVariant(filters.power, POWER_LEVEL_CONFIG);
+
+  const resolvedTasteLabel = tasteConfig?.labelPl ?? filters.flavorProfile;
+  const resolvedPowerLabel = powerConfig?.labelPl ?? filters.power;
   const boltsToFill = powerConfig?.bolts ?? 0;
 
   const fallbackIconName: IconName = tasteConfig?.iconName ?? "glass-cocktail";
@@ -117,7 +127,9 @@ export const DrinkInfoCard: React.FC<DrinkInfoCardProps> = ({
   );
 
   return (
-    <View style={styles.container}>
+    <>
+      <TouchableOpacity activeOpacity={0.85} onPress={() => setShowDrinkOptions(true)}>
+        <View style={styles.container}>
       {/* Taste Section */}
       <View style={styles.section}>
         <View style={styles.iconWrapper}>{icon}</View>
@@ -146,7 +158,20 @@ export const DrinkInfoCard: React.FC<DrinkInfoCardProps> = ({
           <Text style={styles.value}>{resolvedPowerLabel}</Text>
         </View>
       </View>
-    </View>
+        </View>
+      </TouchableOpacity>
+      {showDrinkOptions && (
+        <DrinkOptions
+          data={filters}
+          onSelectionChange={onSelectionChange}
+          onClose={() => setShowDrinkOptions(false)}
+          onConfirm={(newFilters) => {
+            setFilters(newFilters);
+            setShowDrinkOptions(false);
+          }}
+        />
+      )}
+    </>
   );
 };
 

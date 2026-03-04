@@ -1,6 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  Animated,
+  Dimensions,
+  PanResponder,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,6 +12,18 @@ import {
   View,
   Modal
 } from "react-native";
+import {
+  DEFAULT_DRINK_SECTIONS,
+  DEFAULT_FLAVOR_PROFILES,
+  DEFAULT_FLAVOR_PROFILES_LABELS,
+  DEFAULT_POWER_LEVELS,
+  DEFAULT_POWER_LEVELS_LABELS,
+  DEFAULT_SELECTED_FLAVOR,
+  DEFAULT_SELECTED_POWER,
+} from "../../constants/drink-options-data";
+import { loadRecentOptions, loadSelectedOptions, saveRecentOptions, saveSelectedOptions } from "../../utils/drink-storage";
+
+const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export interface DrinkOptionItem {
   id: string;
@@ -46,35 +61,13 @@ export interface DrinkOptionsProps {
 }
 
 export const DrinkOptions: React.FC<DrinkOptionsProps> = ({
-  sections = [
-    {
-      id: "recent",
-      title: "Ostatnie",
-      icon: "time-outline",
-      items: [],
-      isExpanded: false,
-    },
-    {
-      id: "alcohol",
-      title: "Alkohol",
-      icon: "wine-outline",
-      items: [],
-      isExpanded: false,
-    },
-    {
-      id: "additives",
-      title: "Dodatki",
-      icon: "add-circle-outline",
-      items: [],
-      isExpanded: false,
-    },
-  ],
-  powerLevels = ["Low", "Medium", "High"],
-  powerLevelsLabels = ["Słabe", "Średnie", "Mocne"],
-  flavorProfiles = ["Sweet", "Dry", "Semi_sweet"],
-  flavorProfilesLabels = ["Słodki", "Wytrawny", "Półsłodki"],
-  selectedPower = "Medium",
-  selectedFlavorProfile = "Sweet",
+  sections = DEFAULT_DRINK_SECTIONS,
+  powerLevels = DEFAULT_POWER_LEVELS,
+  powerLevelsLabels = DEFAULT_POWER_LEVELS_LABELS,
+  flavorProfiles = DEFAULT_FLAVOR_PROFILES,
+  flavorProfilesLabels = DEFAULT_FLAVOR_PROFILES_LABELS,
+  selectedPower = DEFAULT_SELECTED_POWER,
+  selectedFlavorProfile = DEFAULT_SELECTED_FLAVOR,
   onConfirm,
   onClose,
   onSelectionChange,
@@ -87,6 +80,98 @@ export const DrinkOptions: React.FC<DrinkOptionsProps> = ({
     selectedFlavorProfile
   );
   const [flavorExpanded, setFlavorExpanded] = useState(false);
+
+  const translateY = useRef(new Animated.Value(0)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+
+    Promise.all([loadRecentOptions(), loadSelectedOptions()]).then(
+      ([recentLabels, savedSelection]) => {
+        setSectionsState((prev) =>
+          prev.map((section) => {
+            // Restore selected state across all sections
+            const withSelection = section.items.map((item) => ({
+              ...item,
+              isSelected: savedSelection?.labels.includes(item.label) ?? false,
+            }));
+
+            if (section.id === "recent" && recentLabels.length > 0) {
+              return {
+                ...section,
+                items: recentLabels.map((label, i) => ({
+                  id: `recent-${i}`,
+                  label,
+                  isSelected: savedSelection?.labels.includes(label) ?? false,
+                })),
+              };
+            }
+
+            return { ...section, items: withSelection };
+          })
+        );
+
+        if (savedSelection) {
+          setSelectedPowerState(savedSelection.power);
+          setSelectedFlavorState(savedSelection.flavorProfile);
+        }
+      }
+    );
+  }, [opacity]);
+
+  const swipeFade = translateY.interpolate({
+    inputRange: [0, SCREEN_HEIGHT * 0.4],
+    outputRange: [1, 0.3],
+    extrapolate: "clamp",
+  });
+
+  const combinedOpacity = Animated.multiply(opacity, swipeFade);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) =>
+        gestureState.dy > 10 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx),
+      onPanResponderMove: (_, gestureState) => {
+        // Only follow finger downward; clamp upward drags at 0
+        if (gestureState.dy > 0) {
+          translateY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 120 || gestureState.vy > 0.8) {
+          // Slide off screen then close
+          Animated.timing(translateY, {
+            toValue: SCREEN_HEIGHT,
+            duration: 250,
+            useNativeDriver: true,
+          }).start(() => {
+            translateY.setValue(0);
+            saveSelectedOptions(getSelectedOptions(), selectedPowerState, selectedFlavorState);
+            onClose?.();
+          });
+        } else {
+          // Spring back to resting position
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            bounciness: 6,
+          }).start();
+        }
+      },
+      onPanResponderTerminate: () => {
+        Animated.spring(translateY, {
+          toValue: 0,
+          useNativeDriver: true,
+          bounciness: 6,
+        }).start();
+      },
+    })
+  ).current;
 
   const handleSectionToggle = (sectionId: string) => {
     setSectionsState((prevSections) =>
@@ -175,23 +260,36 @@ export const DrinkOptions: React.FC<DrinkOptionsProps> = ({
   };
 
   const handleConfirm = () => {
-    if (onSelectionChange) {
-      onSelectionChange({
-        drinkOptions: getSelectedOptions(),
-        power: selectedPowerState,
-        flavorProfile: selectedFlavorState,
-      });
-    }
-    if (onConfirm) {
-      const filterData = {
-        power: selectedPowerState,
-        flavorProfile: selectedFlavorState,
+    const selected = getSelectedOptions();
+    saveSelectedOptions(selected, selectedPowerState, selectedFlavorState);
+    Animated.timing(opacity, {
+      toValue: 0,
+      duration: 220,
+      useNativeDriver: true,
+    }).start(() => {
+      if (selected.length > 0) {
+        loadRecentOptions().then((existing) =>
+          saveRecentOptions(selected, existing)
+        );
       }
-      onConfirm(filterData);
-    }
-    if (onClose) {
-      onClose();
-    }
+      if (onSelectionChange) {
+        onSelectionChange({
+          drinkOptions: selected,
+          power: selectedPowerState,
+          flavorProfile: selectedFlavorState,
+        });
+      }
+      if (onConfirm) {
+        const filterData = {
+          power: selectedPowerState,
+          flavorProfile: selectedFlavorState,
+        };
+        onConfirm(filterData);
+      }
+      if (onClose) {
+        onClose();
+      }
+    });
   };
 
   const filteredSections = sectionsState.map((section) => ({
@@ -202,8 +300,13 @@ export const DrinkOptions: React.FC<DrinkOptionsProps> = ({
   }));
 
   return (
-    <Modal animationType="slide">
-      <View style={styles.container}>
+    <Modal animationType="none" transparent>
+      <Animated.View style={[styles.container, { opacity: combinedOpacity, transform: [{ translateY }] }]}>
+        {/* Drag handle – swipe down to close */}
+        <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
+          <View style={styles.dragHandleBar} />
+        </View>
+
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#333" style={styles.searchIcon} />
@@ -276,7 +379,7 @@ export const DrinkOptions: React.FC<DrinkOptionsProps> = ({
           contentContainerStyle={styles.scrollContent}
           scrollIndicatorInsets={{ right: 1 }}
         >
-          {filteredSections.map((section) => (
+          {filteredSections.filter((section) => !(section.id === "recent" && section.items.length === 0)).map((section) => (
             <View key={section.id} style={styles.section}>
               <View style={styles.sectionHeader}>
                 <View style={styles.headerLeft}>
@@ -468,7 +571,7 @@ export const DrinkOptions: React.FC<DrinkOptionsProps> = ({
           </TouchableOpacity>
         </View>
         )}
-      </View>
+      </Animated.View>
     </Modal>
   );
 };
@@ -477,6 +580,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
+  },
+  dragHandleContainer: {
+    alignItems: "center",
+    paddingVertical: 12,
+    backgroundColor: "#f5f5f5",
+  },
+  dragHandleBar: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#ccc",
   },
   searchContainer: {
     flexDirection: "row",
