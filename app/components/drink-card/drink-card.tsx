@@ -1,6 +1,7 @@
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Drink } from "../../types/drink";
 import { Ionicons } from "@expo/vector-icons";
+import { resolveVariant, TASTE_PROFILE_CONFIG, POWER_LEVEL_CONFIG } from "../drink-info-card/drink-info-card";
 
 interface DrinkCardProps {
   drink: Drink;
@@ -9,6 +10,12 @@ interface DrinkCardProps {
 }
 
 const DrinkCard = ({ drink, isFavorite, onToggleFavorite }: DrinkCardProps) => {
+  const tasteConfig = resolveVariant(drink.flavor_profile, TASTE_PROFILE_CONFIG);
+  const powerConfig = resolveVariant(drink.strength, POWER_LEVEL_CONFIG);
+
+  const resolvedTasteLabel = tasteConfig?.labelPl ?? drink.flavor_profile;
+  const resolvedPowerLabel = powerConfig?.labelPl ?? drink.strength;
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.cardContainer}>
@@ -19,11 +26,11 @@ const DrinkCard = ({ drink, isFavorite, onToggleFavorite }: DrinkCardProps) => {
           <Text style={styles.title}>{drink.name}</Text>
           <View style={styles.metaBlock}>
             <Text style={styles.metaLabel}>PROFIL SMAKU</Text>
-            <Text style={styles.metaValue}>{drink.flavorProfile}</Text>
+            <Text style={styles.metaValue}>{resolvedTasteLabel}</Text>
           </View>
           <View style={styles.metaBlock}>
             <Text style={styles.metaLabel}>MOC DRINKA</Text>
-            <Text style={styles.metaValue}>{drink.strength}</Text>
+            <Text style={styles.metaValue}>{resolvedPowerLabel}</Text>
           </View>
         </View>
       </View>

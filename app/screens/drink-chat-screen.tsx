@@ -1,21 +1,21 @@
-import React, { useState, useRef, useEffect } from "react";
-import { ScrollView, StyleSheet, View, Dimensions } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
 import { ChatBoxText } from "../components/chat-box-text/chat-box-text";
 import { DrinkInfoCard, englishToPolishPower, englishToPolishTaste } from "../components/drink-info-card/drink-info-card";
-import InputBoxWithSuggestions from "../components/input-box-with-suggestions";
 import { DrinksCarousel } from "../components/drinks-carousel/drinks-carousel";
 import ErrorDisplay from "../components/error-display/error-display";
+import InputBoxWithSuggestions from "../components/input-box-with-suggestions";
 
 export default function DrinkChatScreen() {
   const [messages, setMessages] = useState<string[]>([]);
-  const [messageFilters, setMessageFilters] = useState<{flavorProfile: string, power: string}[]>([]);
+  const [messageFilters, setMessageFilters] = useState<{ flavorProfile: string, power: string }[]>([]);
   const [message, setMessage] = useState<string>("");
   const [filters, setFilters] = useState({ flavorProfile: "sweet", power: "weak" });
   const [failedMessages, setFailedMessages] = useState<Set<number>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [currentError, setCurrentError] = useState<string | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
-  
+
   // Handle on History Press
   const handleHistoryPress = (msg: string) => {
     setMessage(msg);
@@ -69,12 +69,12 @@ export default function DrinkChatScreen() {
 
     setIsLoading(true);
     const messageIndex = messages.length;
-    
+
     try {
       setMessages([...messages, message]);
       setMessageFilters([...messageFilters, filters]);
       setMessage("");
-      
+
     } catch (error) {
       console.error('Failed to send message:', error);
       setFailedMessages(prev => new Set(prev).add(messageIndex));
@@ -94,22 +94,22 @@ export default function DrinkChatScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView 
+      <ScrollView
         ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
         {messages.map((msg, index) => (
           <View key={index} style={styles.messageContainer}>
-            <ChatBoxText 
-              message={msg} 
+            <ChatBoxText
+              message={msg}
               onHistoryPress={() => handleHistoryPress(msg)}
               onRetryPress={() => handleRetryMessage(index)}
               hasError={failedMessages.has(index)}
             />
-            <DrinksCarousel 
-              message={msg} 
-              messageIndex={index} 
+            <DrinksCarousel
+              message={msg}
+              messageIndex={index}
               filters={{
                 flavorProfile: englishToPolishTaste(messageFilters[index]?.flavorProfile || filters.flavorProfile),
                 power: englishToPolishPower(messageFilters[index]?.power || filters.power)
@@ -122,13 +122,13 @@ export default function DrinkChatScreen() {
 
       {/* Fixed Drink Info Card above Input */}
       <View style={styles.fixedBottomSection}>
-        <DrinkInfoCard 
-          tasteProfile={filters.flavorProfile}
-          drinkPower={filters.power}
+        <DrinkInfoCard
+          tasteProfile={englishToPolishTaste(filters.flavorProfile)}
+          drinkPower={englishToPolishPower(filters.power)}
         />
         {/* Fixed Input Box at Bottom */}
         <View style={styles.inputWrapper}>
-          <InputBoxWithSuggestions 
+          <InputBoxWithSuggestions
             value={message}
             onChange={handleMessageChange}
             onSend={handleSendMessage}
@@ -139,9 +139,9 @@ export default function DrinkChatScreen() {
           />
         </View>
       </View>
-      
+
       {/* Error Display */}
-      <ErrorDisplay 
+      <ErrorDisplay
         error={currentError}
         onDismiss={dismissError}
         autoHide={true}

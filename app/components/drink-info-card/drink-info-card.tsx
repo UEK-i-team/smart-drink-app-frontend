@@ -34,7 +34,7 @@ export const TASTE_PROFILE_CONFIG: Record<string, TasteProfileConfig> = {
   "semi_sweet": {
     labelPl: "Półsłodki",
     iconName: "fruit-pineapple",
-    aliases: ["pol-slodki", "pół-słodki", "półsłodki", "semi_sweet", "semi-sweet"],
+    aliases: ["pol-slodki", "pół-słodki", "półsłodki", "semi_sweet", "semi-sweet", "semisweet"],
   },
   "semi-dry": {
     labelPl: "Pół wytrawny",

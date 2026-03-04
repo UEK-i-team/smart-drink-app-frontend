@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useRef } from "react";
-import { 
-    ScrollView, 
-    StyleSheet, 
-    View
+import { addToHistory, getDrinks } from "@/api.js";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  View
 } from "react-native";
+import { Drink } from "../../types/drink";
 import { DrinkView } from "../drink-view/drink-view";
 import { RecommendDrinkView } from "../recommend-drink-view/recommend-drink-view";
-import { DrinkInfoChatBox } from "../drink-info-chat-box/drink-info-chat-box";
-import { Dimensions } from "react-native";
-import { Drink } from "../../types/drink";
-import { getDrinks, addToHistory } from "@/api.js";
 
 export const DrinksCarousel = ({ 
   message, 
@@ -200,7 +199,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   drinkContainer: {
-    width: Dimensions.get('window').width,
+    width: Dimensions.get('window').width - 20,
   },
   pagination: {
     flexDirection: 'row',
