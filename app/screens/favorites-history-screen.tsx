@@ -1,3 +1,5 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -8,18 +10,17 @@ import {
   Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Background from "../components/main-background/Background";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import DrinkCard from "../components/drink-card/drink-card";
-import { Drink } from "../types/drink";
+import Background from "../components/main-background/Background";
 import { SAMPLE_DRINKS } from "../constants/sample-drinks";
+import { Drink } from "../types/drink";
 import {
   ensureHistorySeeded,
   loadFavorites,
   toggleFavoritePersisted,
   upsertHistoryEntry,
 } from "../utils/drink-storage";
-import { Ionicons } from "@expo/vector-icons";
 
 const TABS = [
   { key: "favorites" as const, label: "Ulubione" },
@@ -30,6 +31,8 @@ type TabKey = (typeof TABS)[number]["key"];
 
 const FavoritesHistoryScreen = () => {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
+  
   const [activeTab, setActiveTab] = useState<TabKey>("favorites");
   const [favorites, setFavorites] = useState<Drink[]>([]);
   const [history, setHistory] = useState<Drink[]>([]);
@@ -105,7 +108,7 @@ const FavoritesHistoryScreen = () => {
   );
 
   return (
-    <View
+    <SafeAreaView
       style={[
         styles.screen,
         { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 12 },
@@ -113,7 +116,9 @@ const FavoritesHistoryScreen = () => {
     >
       <Background />
       <View style={styles.content}>
-        <View style={styles.topBar} />
+        <Pressable onPress={() => navigation.goBack()}>
+          <View style={styles.topBar} />
+        </Pressable>
         <View style={styles.tabRow}>
           {TABS.map((tab) => (
             <Pressable
@@ -161,7 +166,7 @@ const FavoritesHistoryScreen = () => {
           />
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

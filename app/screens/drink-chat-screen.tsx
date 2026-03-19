@@ -1,12 +1,13 @@
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { DrinkInfoCard } from "../components/drink-info-card/drink-info-card";
 import { HistoryButton } from "../components/history-button/history-button";
 import InputBoxWithSuggestions from "../components/input-box-with-suggestions";
 
 export default function DrinkChatScreen() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
       <HistoryButton />
       </ScrollView>
@@ -26,7 +27,7 @@ export default function DrinkChatScreen() {
           />
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
