@@ -2,15 +2,15 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 export interface DrinkInfoChatBoxProps {
-  onPress?: () => void;
+  text?: string;
 }
 
 export const DrinkInfoChatBox: React.FC<DrinkInfoChatBoxProps> = ({
-  onPress,
+  text = "Oto kilka propozycji, które dla Ciebie znalazłem. Mam nadzieję, że trafią w Twój gust!",
 }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</Text>
+      <Text style={styles.text}>{text}</Text>
     </View>
   );
 };
