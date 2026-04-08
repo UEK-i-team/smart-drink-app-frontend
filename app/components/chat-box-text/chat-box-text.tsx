@@ -1,6 +1,6 @@
-import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export interface ChatBoxTextProps {
   message: string;
@@ -17,32 +17,17 @@ export const ChatBoxText: React.FC<ChatBoxTextProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      <TouchableOpacity 
-        style={styles.historyButton}
-        onPress={onHistoryPress}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-      >
-        <Ionicons 
-          name="time-outline" 
-          size={20} 
-          color="white" 
-        />
-      </TouchableOpacity>
       <View style={[styles.bubble, hasError && styles.errorBubble]}>
         <Text style={[styles.text, hasError && styles.errorText]}>
           {message}
         </Text>
         {hasError && (
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.retryButton}
             onPress={onRetryPress}
             hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
           >
-            <Ionicons 
-              name="refresh" 
-              size={16} 
-              color="#FF6B35" 
-            />
+            <Ionicons name="refresh" size={16} color="#FF6B35" />
             <Text style={styles.retryText}>Retry</Text>
           </TouchableOpacity>
         )}
@@ -104,13 +89,5 @@ const styles = StyleSheet.create({
     color: "#FF6B35",
     marginLeft: 4,
     fontWeight: "500",
-  },
-  historyButton: {
-    alignSelf: "flex-end",
-    bottom: -8,
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: "black",
-    zIndex: 1,
   },
 });

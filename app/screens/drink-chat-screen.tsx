@@ -1,16 +1,35 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
+import {
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View
+} from "react-native";
+import FlaskAndGlassSVG from "../../assets/svgs/flask-and-glass-svg";
 import { ChatBoxText } from "../components/chat-box-text/chat-box-text";
-import { DrinkInfoCard, englishToPolishPower, englishToPolishTaste } from "../components/drink-info-card/drink-info-card";
+import {
+  DrinkInfoCard,
+  englishToPolishPower,
+  englishToPolishTaste,
+} from "../components/drink-info-card/drink-info-card";
 import { DrinksCarousel } from "../components/drinks-carousel/drinks-carousel";
 import ErrorDisplay from "../components/error-display/error-display";
 import InputBoxWithSuggestions from "../components/input-box-with-suggestions";
 
 export default function DrinkChatScreen() {
+  const router = useRouter();
   const [messages, setMessages] = useState<string[]>([]);
-  const [messageFilters, setMessageFilters] = useState<{ flavorProfile: string, power: string }[]>([]);
+  const [messageFilters, setMessageFilters] = useState<
+    { flavorProfile: string; power: string }[]
+  >([]);
   const [message, setMessage] = useState<string>("");
-  const [filters, setFilters] = useState({ flavorProfile: "sweet", power: "weak" });
+  const [filters, setFilters] = useState({
+    flavorProfile: "sweet",
+    power: "weak",
+  });
   const [failedMessages, setFailedMessages] = useState<Set<number>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [currentError, setCurrentError] = useState<string | null>(null);
@@ -19,11 +38,11 @@ export default function DrinkChatScreen() {
   // Handle on History Press
   const handleHistoryPress = (msg: string) => {
     setMessage(msg);
-  }
+  };
 
   // Handle Error Display
   const handleError = (errorMessage: string) => {
-    console.log('Error received:', errorMessage); // Debug log
+    console.log("Error received:", errorMessage); // Debug log
     setCurrentError(errorMessage);
   };
 
@@ -32,13 +51,13 @@ export default function DrinkChatScreen() {
   };
 
   const handleRetryMessage = (index: number) => {
-    setFailedMessages(prev => {
+    setFailedMessages((prev) => {
       const newSet = new Set(prev);
       newSet.delete(index);
       return newSet;
     });
     setCurrentError(null);
-  }
+  };
 
   // Input Validation
   const validateInput = (text: string): boolean => {
@@ -46,7 +65,7 @@ export default function DrinkChatScreen() {
     if (text.trim().length < 3) return false;
     if (text.trim().length > 500) return false;
     return true;
-  }
+  };
 
   // Handle Message Change
   const handleMessageChange = (message: string) => {
@@ -54,10 +73,14 @@ export default function DrinkChatScreen() {
   };
 
   // Handle Filter Change
-  const handleFilterChange = (filterData: { drinkOptions: string[], power: string, flavorProfile: string }) => {
+  const handleFilterChange = (filterData: {
+    drinkOptions: string[];
+    power: string;
+    flavorProfile: string;
+  }) => {
     setFilters({
       flavorProfile: filterData.flavorProfile,
-      power: filterData.power
+      power: filterData.power,
     });
   };
 
@@ -74,14 +97,13 @@ export default function DrinkChatScreen() {
       setMessages([...messages, message]);
       setMessageFilters([...messageFilters, filters]);
       setMessage("");
-
     } catch (error) {
-      console.error('Failed to send message:', error);
-      setFailedMessages(prev => new Set(prev).add(messageIndex));
+      console.error("Failed to send message:", error);
+      setFailedMessages((prev) => new Set(prev).add(messageIndex));
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -94,30 +116,51 @@ export default function DrinkChatScreen() {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.navHistoryButton}
+        onPress={() => router.push("/screens/favorites-history-screen")}
+      >
+        <Ionicons name="time-outline" size={24} color="white" />
+      </TouchableOpacity>
+
       <ScrollView
         ref={scrollViewRef}
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          messages.length === 0 && styles.emptyScrollContent,
+        ]}
       >
-        {messages.map((msg, index) => (
-          <View key={index} style={styles.messageContainer}>
-            <ChatBoxText
-              message={msg}
-              onHistoryPress={() => handleHistoryPress(msg)}
-              onRetryPress={() => handleRetryMessage(index)}
-              hasError={failedMessages.has(index)}
-            />
-            <DrinksCarousel
-              message={msg}
-              messageIndex={index}
-              filters={{
-                flavorProfile: englishToPolishTaste(messageFilters[index]?.flavorProfile || filters.flavorProfile),
-                power: englishToPolishPower(messageFilters[index]?.power || filters.power)
-              }}
-              onError={handleError}
-            />
+        {messages.length === 0 ? (
+          <View style={styles.emptyStateContainer}>
+            <FlaskAndGlassSVG />
           </View>
-        ))}
+        ) : (
+          messages.map((msg, index) => (
+            <View key={index} style={styles.messageContainer}>
+              <ChatBoxText
+                message={msg}
+                onHistoryPress={() => handleHistoryPress(msg)}
+                onRetryPress={() => handleRetryMessage(index)}
+                hasError={failedMessages.has(index)}
+              />
+              <DrinksCarousel
+                message={msg}
+                messageIndex={index}
+                filters={{
+                  flavorProfile: englishToPolishTaste(
+                    messageFilters[index]?.flavorProfile ||
+                      filters.flavorProfile,
+                  ),
+                  power: englishToPolishPower(
+                    messageFilters[index]?.power || filters.power,
+                  ),
+                }}
+                onError={handleError}
+              />
+            </View>
+          ))
+        )}
       </ScrollView>
 
       {/* Fixed Drink Info Card above Input */}
@@ -154,7 +197,7 @@ export default function DrinkChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "rgba(235, 231, 230, 1)",
   },
   scrollView: {
     flex: 1,
@@ -162,22 +205,51 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
     paddingBottom: 350,
   },
+  emptyScrollContent: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyStateContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 80,
+  },
+  emptyStateText: {
+    marginTop: 24,
+    fontSize: 14,
+    color: "#333",
+    textAlign: "center",
+    lineHeight: 20,
+    fontWeight: "400",
+  },
+  navHistoryButton: {
+    position: "absolute",
+    top: 50,
+    right: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: "#000",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+  },
   drinkContainer: {
-    width: Dimensions.get('window').width,
+    width: Dimensions.get("window").width,
   },
   messageContainer: {
     paddingTop: 16,
-    paddingHorizontal: 8
+    paddingHorizontal: 8,
   },
   fixedBottomSection: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "rgba(235, 231, 230, 1)",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
