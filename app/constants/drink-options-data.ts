@@ -5,10 +5,7 @@ export const DEFAULT_DRINK_SECTIONS: DrinkOptionSection[] = [
     id: "recent",
     title: "Ostatnie",
     icon: "time-outline",
-    items: [
-      { id: "1", label: "Wódka", isSelected: false },
-      { id: "2", label: "Rum", isSelected: false },
-    ],
+    items: [],
     isExpanded: false,
   },
   {
