@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Dimensions,
   ScrollView,
@@ -21,6 +22,7 @@ import InputBoxWithSuggestions from "../components/input-box-with-suggestions";
 
 export default function DrinkChatScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [messages, setMessages] = useState<string[]>([]);
   const [messageFilters, setMessageFilters] = useState<
     { flavorProfile: string; power: string }[]
@@ -117,8 +119,10 @@ export default function DrinkChatScreen() {
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        style={styles.navHistoryButton}
+        style={[styles.navHistoryButton, { top: insets.top + 8 }]}
         onPress={() => router.push("/screens/favorites-history-screen")}
+        accessibilityRole="button"
+        accessibilityLabel="View drink history"
       >
         <Ionicons name="time-outline" size={24} color="white" />
       </TouchableOpacity>
@@ -227,7 +231,6 @@ const styles = StyleSheet.create({
   },
   navHistoryButton: {
     position: "absolute",
-    top: 50,
     right: 20,
     width: 44,
     height: 44,
