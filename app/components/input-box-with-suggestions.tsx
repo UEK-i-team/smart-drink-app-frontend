@@ -1,7 +1,13 @@
-import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { ScrollView, Text } from "react-native";
-import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { DrinkOptions } from "./drink-options/drink-options";
 
 interface InputBoxWithSuggestionsProps {
@@ -35,44 +41,54 @@ export default function InputBoxWithSuggestions({
 }: InputBoxWithSuggestionsProps) {
   const [showDrinkOptions, setShowDrinkOptions] = useState(false);
   const [filters, setFilters] = useState({ flavorProfile: "", power: "" });
-  
+
   // Show drink options
-  const handleShowDrinkOptions = (newData: { flavorProfile: string; power: string }) => {
-    setFilters(newData)
-    setShowDrinkOptions(true)
-  }
+  const handleShowDrinkOptions = (newData: {
+    flavorProfile: string;
+    power: string;
+  }) => {
+    setFilters(newData);
+    setShowDrinkOptions(true);
+  };
 
   const handleCloseDrinkOptions = () => {
-    setShowDrinkOptions(false)
-  }
+    setShowDrinkOptions(false);
+  };
 
   // Input validation
-  const isInputValid = value && value.trim().length >= 3 && value.trim().length <= 500 && !validationError;
+  const isInputValid =
+    value &&
+    value.trim().length >= 3 &&
+    value.trim().length <= 500 &&
+    !validationError;
 
   const handleClickSuggestion = (suggestion: string) => {
     if (onChange && !disabled) {
       onChange(suggestion);
     }
-  }
+  };
 
   return (
     <View style={styles.container}>
       {/* Scrollable suggestion chips */}
       {!value && (
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        style={styles.suggestionsContainer}
-        contentContainerStyle={styles.suggestionsContent}
-      >
-        {suggestions.map((suggestion, index) => (
-          <TouchableOpacity onPress={() => handleClickSuggestion(suggestion)}>
-            <View key={index} style={styles.suggestionChip}>
-              <Text>{suggestion}</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.suggestionsContainer}
+          contentContainerStyle={styles.suggestionsContent}
+        >
+          {suggestions.map((suggestion, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => handleClickSuggestion(suggestion)}
+            >
+              <View style={styles.suggestionChip}>
+                <Text>{suggestion}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       )}
       {/* Input section */}
       <View style={styles.inputContainer}>
@@ -88,48 +104,79 @@ export default function InputBoxWithSuggestions({
               value={value}
               editable={!disabled}
             />
-            
+
             {/* Left side buttons */}
             <View style={styles.leftButtons}>
-              <TouchableOpacity style={[styles.inputIconButton, disabled && styles.disabledButton]} disabled={disabled}>
-                <Ionicons name="camera-outline" size={22} color={disabled ? "#ccc" : "#333"} />
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                onPress={() => handleShowDrinkOptions(filters)} 
-                style={[styles.inputIconButton, disabled && styles.disabledButton]}
+              <TouchableOpacity
+                style={[
+                  styles.inputIconButton,
+                  disabled && styles.disabledButton,
+                ]}
                 disabled={disabled}
               >
-                <Ionicons name="options-outline" size={22} color={disabled ? "#ccc" : "#333"} />
+                <Ionicons
+                  name="camera-outline"
+                  size={22}
+                  color={disabled ? "#ccc" : "#333"}
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => handleShowDrinkOptions(filters)}
+                style={[
+                  styles.inputIconButton,
+                  disabled && styles.disabledButton,
+                ]}
+                disabled={disabled}
+              >
+                <Ionicons
+                  name="options-outline"
+                  size={22}
+                  color={disabled ? "#ccc" : "#333"}
+                />
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Send button */}
-          <TouchableOpacity 
-            style={[styles.sendButton, !isInputValid && styles.disabledSendButton, disabled && styles.disabledSendButton]}
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              !isInputValid && styles.disabledSendButton,
+              disabled && styles.disabledSendButton,
+            ]}
             onPress={onSend}
             disabled={!isInputValid || disabled}
           >
-            <Ionicons name="arrow-up" size={24} color={isInputValid && !disabled ? "#fff" : "#ccc"} />
+            <Ionicons
+              name="arrow-up"
+              size={24}
+              color={isInputValid && !disabled ? "#fff" : "#ccc"}
+            />
           </TouchableOpacity>
         </View>
       </View>
-          {validationError && value && (
-            <View style={styles.validationErrorContainer}>
-              <Text style={styles.validationErrorText}>
-                {value.trim().length < 3 ? "Wymagane minimum 3 znaki" : 
-                 value.trim().length > 500 ? "Maksimum 500 znaków" : 
-                 "Wprowadź prawidłową wiadomość"}
-              </Text>
-            </View>
-          )}
-          {showDrinkOptions && <DrinkOptions 
-            data={filters}
-            onSelectionChange={onSelectionChange} 
-            onClose={() => handleCloseDrinkOptions()} 
-            onConfirm={(filters: {flavorProfile: string; power: string}) => handleShowDrinkOptions(filters)}
-          />}
+      {validationError && value && (
+        <View style={styles.validationErrorContainer}>
+          <Text style={styles.validationErrorText}>
+            {value.trim().length < 3
+              ? "Wymagane minimum 3 znaki"
+              : value.trim().length > 500
+                ? "Maksimum 500 znaków"
+                : "Wprowadź prawidłową wiadomość"}
+          </Text>
+        </View>
+      )}
+      {showDrinkOptions && (
+        <DrinkOptions
+          data={filters}
+          onSelectionChange={onSelectionChange}
+          onClose={() => handleCloseDrinkOptions()}
+          onConfirm={(filters: { flavorProfile: string; power: string }) =>
+            handleShowDrinkOptions(filters)
+          }
+        />
+      )}
     </View>
   );
 }

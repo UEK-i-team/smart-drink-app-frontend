@@ -1,6 +1,6 @@
-import { addToHistory, getDrinks } from "@/api.js";
 import React, { useEffect, useRef, useState } from "react";
 import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
+import { addToHistory, getDrinks } from "../../services/api";
 import { Drink } from "../../types/drink";
 import { DrinkView } from "../drink-view/drink-view";
 import { RecommendDrinkView } from "../recommend-drink-view/recommend-drink-view";
@@ -86,9 +86,9 @@ export const DrinksCarousel = ({
 
   useEffect(() => {
     fetchDrinks();
-  }, [filters, messageIndex]);
-
-  if (!message) return null;
+    // We only want to fetch once when the carousel is mounted for this message
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [messagePagination, setMessagePagination] = useState<{
     [key: number]: number;
@@ -150,6 +150,8 @@ export const DrinksCarousel = ({
       addDrinksToHistory();
     }
   }, [drinks, messageIndex]);
+
+  if (!message) return null;
 
   // Horizontal Scroll View
   return (

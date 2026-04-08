@@ -1,14 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Dimensions,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import FlaskAndGlassSVG from "../../assets/svgs/flask-and-glass-svg";
 import { ChatBoxText } from "../components/chat-box-text/chat-box-text";
 import {
@@ -96,8 +96,11 @@ export default function DrinkChatScreen() {
     const messageIndex = messages.length;
 
     try {
-      setMessages([...messages, message]);
-      setMessageFilters([...messageFilters, filters]);
+      const sentMessage = message;
+      const sentFilters = { ...filters };
+
+      setMessages((prev) => [...prev, sentMessage]);
+      setMessageFilters((prev) => [...prev, sentFilters]);
       setMessage("");
     } catch (error) {
       console.error("Failed to send message:", error);
