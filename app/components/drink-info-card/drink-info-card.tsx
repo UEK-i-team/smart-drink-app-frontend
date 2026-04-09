@@ -68,7 +68,7 @@ const normalizeKey = (value: string) =>
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-");
 
-const resolveVariant = <T extends { aliases?: string[] }>(
+export const resolveVariant = <T extends { aliases?: string[] }>(
   value: string,
   config: Record<string, T>
 ): T | undefined => {
@@ -79,16 +79,6 @@ const resolveVariant = <T extends { aliases?: string[] }>(
   );
 };
 
-// Convert English keys to Polish labels for backend filtering
-export const englishToPolishPower = (englishKey: string): string => {
-  const config = POWER_LEVEL_CONFIG[englishKey];
-  return config?.labelPl || englishKey;
-};
-
-export const englishToPolishTaste = (englishKey: string): string => {
-  const config = TASTE_PROFILE_CONFIG[englishKey];
-  return config?.labelPl || englishKey;
-};
 
 export interface DrinkInfoCardProps {
   tasteProfile: string;
@@ -108,65 +98,62 @@ export const DrinkInfoCard: React.FC<DrinkInfoCardProps> = ({
   onSelectionChange,
 }) => {
   const [showDrinkOptions, setShowDrinkOptions] = useState(false);
-  const [filters, setFilters] = useState({ flavorProfile: tasteProfile, power: drinkPower });
+  const [localFilters, setLocalFilters] = useState({ flavorProfile: tasteProfile, power: drinkPower });
 
-  const tasteConfig = resolveVariant(filters.flavorProfile, TASTE_PROFILE_CONFIG);
-  const powerConfig = resolveVariant(filters.power, POWER_LEVEL_CONFIG);
+  // Keep local state in sync if parent-controlled values change
+  React.useEffect(() => {
+    setLocalFilters({ flavorProfile: tasteProfile, power: drinkPower });
+  }, [tasteProfile, drinkPower]);
 
-  const resolvedTasteLabel = tasteConfig?.labelPl ?? filters.flavorProfile;
-  const resolvedPowerLabel = powerConfig?.labelPl ?? filters.power;
+  const tasteConfig = resolveVariant(localFilters.flavorProfile, TASTE_PROFILE_CONFIG);
+  const powerConfig = resolveVariant(localFilters.power, POWER_LEVEL_CONFIG);
+
+  const resolvedTasteLabel = tasteConfig?.labelPl ?? localFilters.flavorProfile;
+  const resolvedPowerLabel = powerConfig?.labelPl ?? localFilters.power;
   const boltsToFill = powerConfig?.bolts ?? 0;
 
-  const fallbackIconName: IconName = tasteConfig?.iconName ?? "glass-cocktail";
+  const fallbackIconName: IconName = tasteConfig?.iconName ?? 'glass-cocktail';
   const icon = tasteProfileIcon ?? (
-    <MaterialCommunityIcons
-      name={fallbackIconName}
-      size={28}
-      color={ICON_COLOR}
-    />
+    <MaterialCommunityIcons name={fallbackIconName} size={28} color={ICON_COLOR} />
   );
 
   return (
     <>
       <TouchableOpacity activeOpacity={0.85} onPress={() => setShowDrinkOptions(true)}>
         <View style={styles.container}>
-      {/* Taste Section */}
-      <View style={styles.section}>
-        <View style={styles.iconWrapper}>{icon}</View>
-        <View>
-          <Text style={styles.label}>PROFIL SMAKU</Text>
-          <Text style={styles.value}>{resolvedTasteLabel}</Text>
-        </View>
-      </View>
+          <View style={styles.section}>
+            <View style={styles.iconWrapper}>{icon}</View>
+            <View>
+              <Text style={styles.label}>PROFIL SMAKU</Text>
+              <Text style={styles.value}>{resolvedTasteLabel}</Text>
+            </View>
+          </View>
 
-      {/* Power Section */}
-      <View style={[styles.section, styles.powerSection]}>
-        <View style={styles.powerIcons}>
-          {Array.from({ length: 3 }).map((_, index) => (
-            <MaterialCommunityIcons
-              key={index}
-              name="flash"
-              size={22}
-              color={
-                index < boltsToFill ? ACTIVE_BOLT_COLOR : INACTIVE_BOLT_COLOR
-              }
-            />
-          ))}
-        </View>
-        <View>
-          <Text style={styles.label}>MOC DRINKA</Text>
-          <Text style={styles.value}>{resolvedPowerLabel}</Text>
-        </View>
-      </View>
+          <View style={[styles.section, styles.powerSection]}>
+            <View style={styles.powerIcons}>
+              {Array.from({ length: 3 }).map((_, index) => (
+                <MaterialCommunityIcons
+                  key={index}
+                  name="flash"
+                  size={22}
+                  color={index < boltsToFill ? ACTIVE_BOLT_COLOR : INACTIVE_BOLT_COLOR}
+                />
+              ))}
+            </View>
+            <View>
+              <Text style={styles.label}>MOC DRINKA</Text>
+              <Text style={styles.value}>{resolvedPowerLabel}</Text>
+            </View>
+          </View>
         </View>
       </TouchableOpacity>
       {showDrinkOptions && (
         <DrinkOptions
-          data={filters}
+          data={localFilters}
           onSelectionChange={onSelectionChange}
           onClose={() => setShowDrinkOptions(false)}
           onConfirm={(newFilters) => {
-            setFilters(newFilters);
+            setLocalFilters(newFilters);
             setShowDrinkOptions(false);
           }}
         />
