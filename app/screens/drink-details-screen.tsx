@@ -1,142 +1,53 @@
-import { Ionicons } from "@expo/vector-icons";
-import { ComponentProps, useMemo, useState } from "react";
-import {
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { Drink } from "../types/drink";
+import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ComponentProps, useMemo } from 'react';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { colors, radii, spacing, typography } from '../constants/theme';
+import { useFavorites } from '../hooks/useFavorites';
+import { Drink, FlavorProfile, StrengthLevel } from '../types/drink';
 
-type IoniconName = ComponentProps<typeof Ionicons>["name"];
-type FlavorProfileKey = "SWEET" | "BITTER" | "SMOKY" | "DRY" | "FRUITY";
-type StrengthKey = "LIGHT" | "MEDIUM" | "STRONG";
+type IoniconName = ComponentProps<typeof Ionicons>['name'];
 
-interface DrinkApiResponse {
-  name: string;
-  description: string;
-  flavor_profile: FlavorProfileKey;
-  strength: StrengthKey;
-  ingredients: string[];
-  instructions: string[];
-  image_description: string;
-  image_url?: string;
-}
-
-const DEFAULT_IMAGE =
-  "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80";
-
-const mockDrinkResponse: DrinkApiResponse = {
-  name: "Mojito",
-  description: "A refreshing Cuban cocktail with mint and lime.",
-  flavor_profile: "SWEET",
-  strength: "MEDIUM",
-  ingredients: [
-    "50ml white rum",
-    "30ml lime juice",
-    "10ml simple syrup",
-    "6-8 mint leaves",
-    "Soda water",
-  ],
-  instructions: [
-    "Muddle mint leaves with lime juice and syrup w szklance.",
-    "Dodaj rum oraz kostki lodu, delikatnie wymieszaj.",
-    "Dopełnij sodą i raz jeszcze wymieszaj łyżką barmańską.",
-    "Udekoruj gałązką mięty oraz ćwiartką limonki.",
-  ],
-  image_description:
-    "A tall glass filled with ice, fresh mint leaves, and bubbling liquid with a lime wedge.",
-  image_url:
-    "https://images.unsplash.com/photo-1481391032119-d89fee407e44?auto=format&fit=crop&w=1200&q=80",
+const FLAVOR_META: Record<FlavorProfile, { label: string; icon: IoniconName; accent: string; copy: string }> = {
+  Sweet: { label: 'Słodki', icon: 'sparkles-outline', accent: '#F07867', copy: 'Delikatnie słodki profil' },
+  Dry: { label: 'Wytrawny', icon: 'water-outline', accent: '#5E6472', copy: 'Czysty, wytrawny finisz' },
+  Semi_sweet: { label: 'Półsłodki', icon: 'leaf-outline', accent: '#52796F', copy: 'Zbalansowany profil smaku' },
 };
 
-const flavorProfileMeta: Record<
-  FlavorProfileKey,
-  { label: string; icon: IoniconName; accent: string; copy: string }
-> = {
-  SWEET: {
-    label: "Słodki",
-    icon: "sparkles-outline",
-    accent: "#F07867",
-    copy: "Delikatnie słodki profil",
-  },
-  BITTER: {
-    label: "Gorzki",
-    icon: "leaf-outline",
-    accent: "#52796F",
-    copy: "Wyrazista goryczka",
-  },
-  SMOKY: {
-    label: "Dymny",
-    icon: "flame-outline",
-    accent: "#D00000",
-    copy: "Dymne nuty aromatyczne",
-  },
-  DRY: {
-    label: "Wytrawny",
-    icon: "water-outline",
-    accent: "#5E6472",
-    copy: "Czysty, wytrawny finisz",
-  },
-  FRUITY: {
-    label: "Owocowy",
-    icon: "logo-apple",
-    accent: "#EA638C",
-    copy: "Owocowa świeżość",
-  },
+const STRENGTH_META: Record<StrengthLevel, { label: string; icon: IoniconName; accent: string; copy: string }> = {
+  Low: { label: 'Delikatny', icon: 'sunny-outline', accent: '#7BC6A4', copy: 'Niska zawartość alkoholu' },
+  Medium: { label: 'Średni', icon: 'flash-outline', accent: '#FF9F1C', copy: 'Zbalansowana moc drinka' },
+  High: { label: 'Bardzo mocny', icon: 'flash-sharp', accent: '#E63946', copy: 'Pełna, intensywna moc' },
 };
 
-const strengthMeta: Record<
-  StrengthKey,
-  { label: string; icon: IoniconName; accent: string; copy: string }
-> = {
-  LIGHT: {
-    label: "Delikatny",
-    icon: "sunny-outline",
-    accent: "#7BC6A4",
-    copy: "Niska zawartość alkoholu",
-  },
-  MEDIUM: {
-    label: "Średni",
-    icon: "flash-outline",
-    accent: "#FF9F1C",
-    copy: "Zbalansowana moc drinka",
-  },
-  STRONG: {
-    label: "Bardzo mocny",
-    icon: "flash-sharp",
-    accent: "#E63946",
-    copy: "Pełna, intensywna moc",
-  },
-};
+const DrinkDetailsScreen = () => {
+  const router = useRouter();
+  const { drink: drinkParam } = useLocalSearchParams<{ drink: string }>();
+  const { isFavorite, toggleFavorite } = useFavorites();
 
-const transformDrinkFromApi = (payload: DrinkApiResponse): Drink => ({
-  id: "mock-drink-mojito",
-  name: payload.name,
-  description: payload.description,
-  flavorProfile: payload.flavor_profile,
-  strength: payload.strength,
-  imageUrl: payload.image_url ?? DEFAULT_IMAGE,
-  imageDescription: payload.image_description,
-  ingredients: payload.ingredients,
-  instructions: payload.instructions,
-});
+  const drink = useMemo<Drink | null>(() => {
+    if (!drinkParam) return null;
+    try {
+      return JSON.parse(drinkParam) as Drink;
+    } catch {
+      return null;
+    }
+  }, [drinkParam]);
 
-interface DrinkDetailsScreenProps {
-  drinkData?: DrinkApiResponse;
-}
+  if (!drink) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Nie udało się wczytać szczegółów drinka.</Text>
+        <Pressable onPress={() => router.back()} style={styles.backButtonFallback}>
+          <Text style={styles.backButtonFallbackText}>Wróć</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
-const DrinkDetailsScreen = ({ drinkData }: DrinkDetailsScreenProps) => {
-  const drink = useMemo(
-    () => transformDrinkFromApi(drinkData ?? mockDrinkResponse),
-    [drinkData]
-  );
-  const [isFavorite, setIsFavorite] = useState(false);
-  const flavorMeta =
-    flavorProfileMeta[(drink.flavorProfile as FlavorProfileKey) ?? "SWEET"];
-  const strength = strengthMeta[(drink.strength as StrengthKey) ?? "MEDIUM"];
+  const flavorMeta = FLAVOR_META[drink.flavorProfile] ?? FLAVOR_META.Sweet;
+  const strengthMeta = STRENGTH_META[drink.strength] ?? STRENGTH_META.Medium;
+  const favorited = isFavorite(drink.id);
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -144,28 +55,21 @@ const DrinkDetailsScreen = ({ drinkData }: DrinkDetailsScreenProps) => {
         <Image source={{ uri: drink.imageUrl }} style={styles.heroImage} />
         <Pressable
           accessibilityLabel="Wróć"
-          onPress={() => {}}
-          style={({ pressed }) => [
-            styles.backButton,
-            pressed && styles.backButtonPressed,
-          ]}
+          onPress={() => router.back()}
+          style={({ pressed }) => [styles.backButton, pressed && styles.buttonPressed]}
         >
-          <Ionicons name="arrow-back" size={22} color="#fff" />
+          <Ionicons name="arrow-back" size={22} color={colors.white} />
         </Pressable>
         <Pressable
           accessibilityLabel="Dodaj do ulubionych"
-          onPress={() => setIsFavorite((prev) => !prev)}
+          onPress={() => toggleFavorite(drink)}
           style={({ pressed }) => [
             styles.favoriteButton,
-            pressed && styles.favoriteButtonPressed,
-            isFavorite && styles.favoriteButtonActive,
+            pressed && styles.buttonPressed,
+            favorited && styles.favoriteButtonActive,
           ]}
         >
-          <Ionicons
-            name={isFavorite ? "heart" : "heart-outline"}
-            size={22}
-            color="#fff"
-          />
+          <Ionicons name={favorited ? 'heart' : 'heart-outline'} size={22} color={colors.white} />
         </Pressable>
       </View>
 
@@ -181,10 +85,10 @@ const DrinkDetailsScreen = ({ drinkData }: DrinkDetailsScreenProps) => {
         />
         <InfoPill
           label="MOC DRINKA"
-          value={strength.label}
-          caption={strength.copy}
-          iconName={strength.icon}
-          accent={strength.accent}
+          value={strengthMeta.label}
+          caption={strengthMeta.copy}
+          iconName={strengthMeta.icon}
+          accent={strengthMeta.accent}
         />
       </View>
 
@@ -193,7 +97,7 @@ const DrinkDetailsScreen = ({ drinkData }: DrinkDetailsScreenProps) => {
       ) : null}
 
       <SectionCard iconName="leaf-outline" title="Składniki">
-        {drink.ingredients?.map((ingredient) => (
+        {drink.ingredients.map((ingredient) => (
           <View key={ingredient} style={styles.listRow}>
             <View style={styles.bullet} />
             <Text style={styles.listText}>{ingredient}</Text>
@@ -202,7 +106,7 @@ const DrinkDetailsScreen = ({ drinkData }: DrinkDetailsScreenProps) => {
       </SectionCard>
 
       <SectionCard iconName="reader-outline" title="Sposób przygotowania">
-        {drink.instructions?.map((instruction, index) => (
+        {drink.instructions.map((instruction, index) => (
           <View key={`${instruction}-${index}`} style={styles.stepRow}>
             <View style={styles.stepBadge}>
               <Text style={styles.stepIndex}>{index + 1}</Text>
@@ -249,7 +153,7 @@ const SectionCard = ({
 }) => (
   <View style={styles.sectionCard}>
     <View style={styles.sectionHeader}>
-      <Ionicons name={iconName} size={18} color="#4a4a4a" />
+      <Ionicons name={iconName} size={18} color={colors.textMuted} />
       <Text style={styles.sectionTitle}>{title}</Text>
     </View>
     {children}
@@ -259,168 +163,186 @@ const SectionCard = ({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#F8F4F2",
+    backgroundColor: colors.background,
   },
   content: {
     paddingBottom: 64,
-    gap: 20,
+    gap: spacing.md + 4,
   },
   heroCard: {
-    // borderRadius: 36,
-    overflow: "hidden",
-    position: "relative",
-    shadowColor: "#000",
+    overflow: 'hidden',
+    position: 'relative',
+    shadowColor: colors.black,
     shadowOpacity: 0.15,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 10 },
     elevation: 8,
   },
   heroImage: {
-    width: "100%",
+    width: '100%',
     height: 320,
   },
-  favoriteButton: {
-    position: "absolute",
-    top: 12,
-    right: 12,
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#111",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#111",
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  favoriteButtonPressed: {
-    transform: [{ scale: 0.96 }],
-  },
-  favoriteButtonActive: {
-    backgroundColor: "#C73E1D",
-  },
   backButton: {
-    position: "absolute",
+    position: 'absolute',
     top: 12,
     left: 12,
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#111",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#111",
+    backgroundColor: colors.black,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.black,
     shadowOpacity: 0.25,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 6,
   },
-  backButtonPressed: {
+  favoriteButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.black,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.black,
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  favoriteButtonActive: {
+    backgroundColor: colors.primary,
+  },
+  buttonPressed: {
     transform: [{ scale: 0.96 }],
   },
   title: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: "#2E1A1A",
-    paddingHorizontal: 16,
+    ...typography.h1,
+    color: colors.textDark,
+    paddingHorizontal: spacing.md,
   },
   pillsRow: {
-    flexDirection: "row",
-    gap: 12,
-    paddingHorizontal: 16,
+    flexDirection: 'row',
+    gap: spacing.md,
+    paddingHorizontal: spacing.md,
   },
   infoPill: {
     flex: 1,
     borderWidth: 2,
-    borderRadius: 18,
+    borderRadius: radii.lg,
     padding: 14,
-    backgroundColor: "#fff",
-    gap: 4,
+    backgroundColor: colors.card,
+    gap: spacing.xs,
   },
   infoHeader: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
   },
   infoLabel: {
     fontSize: 10,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 1,
   },
   infoValue: {
     fontSize: 18,
-    fontWeight: "700",
-    color: "#2E1A1A",
+    fontWeight: '700',
+    color: colors.textDark,
   },
   infoCaption: {
     fontSize: 12,
-    color: "#6B5F5B",
+    color: colors.textLight,
   },
   description: {
     fontSize: 15,
     lineHeight: 22,
-    color: "#4A4A4A",
-    paddingHorizontal: 16,
+    color: colors.textMuted,
+    paddingHorizontal: spacing.md,
   },
   sectionCard: {
-    backgroundColor: "#fff",
-    borderRadius: 18,
-    padding: 20,
-    gap: 12,
+    backgroundColor: colors.card,
+    borderRadius: radii.lg,
+    padding: spacing.md + 4,
+    gap: spacing.md,
     borderWidth: 1,
-    borderColor: "#EFE6E1",
-    marginHorizontal: 16,
+    borderColor: colors.border,
+    marginHorizontal: spacing.md,
   },
   sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: "700",
-    color: "#2E1A1A",
+    fontWeight: '700',
+    color: colors.textDark,
   },
   listRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
   },
   bullet: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#C73E1D",
+    backgroundColor: colors.primary,
   },
   listText: {
     flex: 1,
     fontSize: 14,
-    color: "#4A4A4A",
+    color: colors.textMuted,
   },
   stepRow: {
-    flexDirection: "row",
-    gap: 12,
+    flexDirection: 'row',
+    gap: spacing.md,
   },
   stepBadge: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "#F3D9D0",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   stepIndex: {
     fontSize: 14,
-    fontWeight: "700",
-    color: "#C73E1D",
+    fontWeight: '700',
+    color: colors.primary,
   },
   stepText: {
     flex: 1,
     fontSize: 14,
     lineHeight: 22,
-    color: "#4A4A4A",
+    color: colors.textMuted,
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.lg,
+    backgroundColor: colors.background,
+  },
+  errorText: {
+    fontSize: 16,
+    color: colors.textMuted,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+  },
+  backButtonFallback: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.md,
+  },
+  backButtonFallbackText: {
+    color: colors.white,
+    fontWeight: '600',
   },
 });
 
